@@ -7,6 +7,8 @@ from .db_geometry import GEOMETRY_BUILD_SCRIPT, load_geometries
 from .db_client_entity import CLIENT_ENTITY_BUILD_SCRIPT, load_client_entities
 from .db_render_controller import RENDER_CONTROLLER_BUILD_SCRIPT, load_render_controllers
 from .db_texture import TEXTURE_BUILD_SCRIPT, load_textures
+from .db_particle import PARTICLE_BUILD_SCRIPT, load_particles
+from .db_rp_animation import RP_ANIMATION_BUILD_SCRIPT, load_rp_animations
 
 SCRIPT = '''
 PRAGMA foreign_keys = ON;
@@ -34,11 +36,13 @@ def create_db(db_path: str = ":memory:") -> Connection:
     db.executescript(RENDER_CONTROLLER_BUILD_SCRIPT)
     db.executescript(GEOMETRY_BUILD_SCRIPT)
     db.executescript(TEXTURE_BUILD_SCRIPT)
+    db.executescript(PARTICLE_BUILD_SCRIPT)
+    db.executescript(RP_ANIMATION_BUILD_SCRIPT)
     return db
 
 def load_rp(
         db: Connection, rp_path: Path, geometries=True, client_entities=True,
-        render_controllers=True, textures=True):
+        render_controllers=True, textures=True, particles=True, rp_animations=True):
     rp_pk = load_resource_pack(db, rp_path)
     if geometries:
         load_geometries(db, rp_pk)
@@ -48,3 +52,7 @@ def load_rp(
         load_render_controllers(db, rp_pk)
     if textures:
         load_textures(db, rp_pk)
+    if particles:
+        load_particles(db, rp_pk)
+    if rp_animations:
+        load_rp_animations(db, rp_pk)
