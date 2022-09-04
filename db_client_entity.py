@@ -33,6 +33,8 @@ CREATE TABLE ClientEntityRenderControllerField (
 
     identifier TEXT,
     condition TEXT,
+    jsonPath TEXT,
+
     FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
         ON DELETE CASCADE
 );
@@ -45,6 +47,8 @@ CREATE TABLE ClientEntityGeometryField (
 
     shortName TEXT,
     identifier TEXT,
+    jsonPath TEXT,
+    
     FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
         ON DELETE CASCADE
 );
@@ -59,6 +63,8 @@ CREATE TABLE ClientEntityTextureField (
     shortName TEXT,
     -- identifier is the path without the extension
     identifier TEXT,
+    jsonPath TEXT,
+
     FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
         ON DELETE CASCADE
 );
@@ -72,6 +78,8 @@ CREATE TABLE ClientEntityMaterialField (
 
     shortName TEXT,
     identifier TEXT,
+    jsonPath TEXT,
+
     FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
         ON DELETE CASCADE
 );
@@ -120,10 +128,10 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
         cursor.execute(
             '''
             INSERT INTO ClientEntityRenderControllerField (
-                ClientEntity_fk, identifier
-            ) VALUES (?, ?)
+                ClientEntity_fk, identifier, jsonPath
+            ) VALUES (?, ?, ?)
             ''',
-            (entity_pk, identifier))
+            (entity_pk, identifier, rc.path_str))
     # RENDER CONTROLLERS - conditional
     for rc in (description / "render_controllers" // int // str):
         if isinstance(rc.data, str):
@@ -133,10 +141,10 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
         cursor.execute(
             '''
             INSERT INTO ClientEntityRenderControllerField (
-                ClientEntity_fk, identifier, condition
-            ) VALUES (?, ?, ?)
+                ClientEntity_fk, identifier, condition, jsonPath
+            ) VALUES (?, ?, ?, ?)
             ''',
-            (entity_pk, rc.parent_key, condition)
+            (entity_pk, rc.parent_key, condition, rc.path_str)
         )
     # MATERIALS
     for material in description / "materials" // str:
@@ -147,10 +155,10 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
         cursor.execute(
             '''
             INSERT INTO ClientEntityMaterialField (
-                ClientEntity_fk, shortName, identifier
-            ) VALUES (?, ?, ?)
+                ClientEntity_fk, shortName, identifier, jsonPath
+            ) VALUES (?, ?, ?, ?)
             ''',
-            (entity_pk, material.parent_key, identifier))
+            (entity_pk, material.parent_key, identifier, material.path_str))
     # TEXTURES
     for texture in description / "textures" // str:
         if isinstance(texture.data, str):
@@ -160,10 +168,10 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
         cursor.execute(
             '''
             INSERT INTO ClientEntityTextureField (
-                ClientEntity_fk, shortName, identifier
-            ) VALUES (?, ?, ?)
+                ClientEntity_fk, shortName, identifier, jsonPath
+            ) VALUES (?, ?, ?, ?)
             ''',
-            (entity_pk, texture.parent_key, identifier))
+            (entity_pk, texture.parent_key, identifier, texture.path_str))
     # GEOMETRIES
     for geometry in description / "geometry" // str:
         if isinstance(geometry.data, str):
@@ -173,7 +181,7 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
         cursor.execute(
             '''
             INSERT INTO ClientEntityGeometryField (
-                ClientEntity_fk, shortName, identifier
-            ) VALUES (?, ?, ?)
+                ClientEntity_fk, shortName, identifier, jsonPath
+            ) VALUES (?, ?, ?, ?)
             ''',
-            (entity_pk, geometry.parent_key, identifier))
+            (entity_pk, geometry.parent_key, identifier, geometry.path_str))

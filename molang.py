@@ -4,7 +4,8 @@ Functions for analyzing Molang expressions.
 import re
 from collections import defaultdict
 
-def find_molang_resources(molang: str, resource_prefixes: list[str]):
+def find_molang_resources(
+        molang: str, resource_prefixes: list[str]) -> dict[str, list[str]]:
     '''
     Finds all resources of specified types in a molang expression. Returns
     a dictionary keyed by the resource type, with values being a list of
@@ -21,7 +22,10 @@ def find_molang_resources(molang: str, resource_prefixes: list[str]):
     {'array': ['array.skin'], 'texture': ['texture.default', 'texture.default2']}
     '''
     molang = molang.lower()
-    results: dict[str, list] = {prefix: [] for prefix in resource_prefixes}
+    results: dict[str, list[str]] = {
+        prefix: []
+        for prefix in resource_prefixes
+    }
     for resource_prefix in resource_prefixes:
         # Capturing groups crops the first part of the search for example:
         # geometry.default -> geometry

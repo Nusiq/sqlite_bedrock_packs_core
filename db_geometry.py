@@ -22,6 +22,8 @@ CREATE TABLE Geometry (
 
     identifier TEXT,
     parent TEXT,
+    jsonPath TEXT,
+
     FOREIGN KEY (GeometryFile_fk) REFERENCES GeometryFile (GeometryFile_pk)
         ON DELETE CASCADE
 );
@@ -60,16 +62,15 @@ def load_geometry(db: Connection, geometry_path: Path, rp_id: int):
         cursor.execute(
             '''
             INSERT INTO Geometry (
-                identifier, parent, GeometryFile_fk
-            ) VALUES (?, ?, ?)
+                identifier, parent, GeometryFile_fk, jsonPath
+            ) VALUES (?, ?, ?, ?)
             ''',
-            (id, parent, file_pk)
+            (id, parent, file_pk, identifier.path_str)
         )
     # Try with 1.12.0 format
-    identifiers = (
-        geometry_jsonc / "minecraft:geometry" // int / 'description' /
-        'identifier')
-    for identifier in identifiers:
+    geometries = (geometry_jsonc / "minecraft:geometry" // int)
+    for geometry in geometries:
+        identifier = geometry / 'description' / 'identifier'
         identifier_data = identifier.data
         if not isinstance(identifier_data, str):
             continue
@@ -78,8 +79,8 @@ def load_geometry(db: Connection, geometry_path: Path, rp_id: int):
         cursor.execute(
             '''
             INSERT INTO Geometry (
-                identifier, GeometryFile_fk
-            ) VALUES (?, ?)
+                identifier, GeometryFile_fk, jsonPath
+            ) VALUES (?, ?, ?)
             ''',
-            (identifier_data, file_pk)
+            (identifier_data, file_pk, geometry.path_str)
         )

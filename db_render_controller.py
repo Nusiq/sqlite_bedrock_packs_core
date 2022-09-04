@@ -1,7 +1,7 @@
 from collections import defaultdict
 from sqlite3 import Connection
 from pathlib import Path
-from typing import Literal
+from typing import Literal, NamedTuple
 from copy import copy
 
 from .better_json import JSONWalker, load_jsonc
@@ -25,6 +25,8 @@ CREATE TABLE RenderController (
     RenderControllerFile_fk INTEGER NOT NULL,
 
     identifier TEXT,
+    jsonPath TEXT,
+
     FOREIGN KEY (RenderControllerFile_fk) REFERENCES RenderControllerFile (RenderControllerFile_pk)
         ON DELETE CASCADE
 );
@@ -36,7 +38,10 @@ CREATE TABLE RenderControllerTexturesField (
     RenderController_fk INTEGER NOT NULL,
 
     ownerArray TEXT,
+    inOwnerArrayJsonPath TEXT, -- Path to the item in the owner array
     shortName TEXT,
+    jsonPath TEXT,
+
     FOREIGN KEY (RenderController_fk) REFERENCES RenderController (RenderController_pk)
         ON DELETE CASCADE
 );
@@ -48,7 +53,9 @@ CREATE TABLE RenderControllerMaterialsField (
     RenderController_fk INTEGER NOT NULL,
 
     ownerArray TEXT,
+    inOwnerArrayJsonPath TEXT, -- Path to the item in the owner array
     shortName TEXT,
+    jsonPath TEXT,
 
     -- The star pattern that matches the bone name
     boneNamePattern TEXT,
@@ -63,7 +70,10 @@ CREATE TABLE RenderControllerGeometryField (
     RenderController_fk INTEGER NOT NULL,
 
     ownerArray TEXT,
+    inOwnerArrayJsonPath TEXT, -- Path to the item in the owner array
     shortName TEXT,
+    jsonPath TEXT,
+
     FOREIGN KEY (RenderController_fk) REFERENCES RenderController (RenderController_pk)
         ON DELETE CASCADE
 );
@@ -82,10 +92,17 @@ def load_render_controllers(db: Connection, rp_id: int):
         load_render_controller(db, geometry_path, rp_id)
 
 
+class _LoadRcArraysItem(NamedTuple):
+    '''
+    One item on a list returned by _load_rc_arrays.
+    '''
+    short_name: str
+    json_path: str
+
 def _load_rc_arrays(
         rc: JSONWalker,
         array_type: Literal["geometry", "material", "texture"],
-        ) -> dict[str, list[str]]:
+) -> dict[str, list[_LoadRcArraysItem]]:
     '''
     Loads arrays of specified type from a render controller.
     '''
@@ -106,7 +123,9 @@ def _load_rc_arrays(
             continue
         array_name = array_name[6:]
         values = find_molang_resources(obj.data, [array_type])[array_type]
-        result[array_name].extend(values)
+        path_str = obj.path_str
+        result[array_name].extend(
+            [_LoadRcArraysItem(v, path_str) for v in values])
     return dict(result)
 
 def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
@@ -140,10 +159,10 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                 cursor.execute(
                     '''
                     INSERT INTO RenderControllerTexturesField (
-                        RenderController_fk, shortName
-                    ) VALUES (?, ?)
+                        RenderController_fk, shortName, jsonPath
+                    ) VALUES (?, ?, ?)
                     ''',
-                    (rc_pk, texture_reference)
+                    (rc_pk, texture_reference, field.path_str)
                 )
                 values["texture"].remove(texture_reference)
             # Access through array
@@ -152,10 +171,20 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                     cursor.execute(
                         '''
                         INSERT INTO RenderControllerTexturesField (
-                            RenderController_fk, shortName, ownerArray
-                        ) VALUES (?, ?, ?)
+                            RenderController_fk,
+                            shortName,
+                            jsonPath,
+                            ownerArray,
+                            inOwnerArrayJsonPath
+                        ) VALUES (?, ?, ?, ?, ?)
                         ''',
-                        (rc_pk, texture_reference, array_name)
+                        (
+                            rc_pk,
+                            texture_reference.short_name,
+                            field.path_str,
+                            array_name,
+                            texture_reference.json_path
+                        )
                     )
         # LOAD MATERIALS
         material_arrays = _load_rc_arrays(rc, "material")
@@ -169,10 +198,11 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                 cursor.execute(
                     '''
                     INSERT INTO RenderControllerMaterialsField (
-                        RenderController_fk, shortName, boneNamePattern
-                    ) VALUES (?, ?, ?)
+                        RenderController_fk, shortName, jsonPath,
+                        boneNamePattern
+                    ) VALUES (?, ?, ?, ?)
                     ''',
-                    (rc_pk, material_reference, pattern)
+                    (rc_pk, material_reference, field.path_str, pattern)
                 )
             # Access through array
             for array_name in values["array"]:
@@ -180,12 +210,24 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                     cursor.execute(
                         '''
                         INSERT INTO RenderControllerMaterialsField (
-                            RenderController_fk, shortName, ownerArray,
+                            RenderController_fk,
+                            shortName,
+                            jsonPath,
+                            ownerArray,
+                            inOwnerArrayJsonPath,
                             boneNamePattern
-                        ) VALUES (?, ?, ?, ?)
+                        ) VALUES (?, ?, ?, ?, ?, ?)
                         ''',
-                        (rc_pk, material_reference, array_name, pattern)
+                        (
+                            rc_pk,
+                            material_reference.short_name,
+                            field.path_str,
+                            array_name,
+                            material_reference.json_path,
+                            pattern
+                        )
                     )
+                    
         # LOAD GEOMETRIES
         geo_arrays = _load_rc_arrays(rc, "geometry")
         field = rc / "geometry"
@@ -196,10 +238,10 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                 cursor.execute(
                     '''
                     INSERT INTO RenderControllerGeometryField (
-                        RenderController_fk, shortName
-                    ) VALUES (?, ?)
+                        RenderController_fk, shortName, jsonPath
+                    ) VALUES (?, ?, ?)
                     ''',
-                    (rc_pk, geometry_reference)
+                    (rc_pk, geometry_reference, field.path_str)
                 )
             # Access through array
             for array_name in values["array"]:
@@ -207,8 +249,18 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                     cursor.execute(
                         '''
                         INSERT INTO RenderControllerGeometryField (
-                            RenderController_fk, shortName, ownerArray
-                        ) VALUES (?, ?, ?)
+                            RenderController_fk,
+                            shortName,
+                            jsonPath,
+                            ownerArray,
+                            inOwnerArrayJsonPath
+                        ) VALUES (?, ?, ?, ?, ?)
                         ''',
-                        (rc_pk, geometry_reference, array_name)
+                        (
+                            rc_pk,
+                            geometry_reference.short_name,
+                            field.path_str,
+                            array_name,
+                            geometry_reference.json_path
+                        )
                     )
