@@ -1,7 +1,7 @@
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json import load_jsonc
-
+import json
 
 RP_ANIMATION_BUILD_SCRIPT = '''
 -- RpAnimation
@@ -73,7 +73,11 @@ def load_rp_animation(db: Connection, animation_path: Path, rp_id: int):
         (animation_path.as_posix(), rp_id)
     )
     file_pk = cursor.lastrowid
-    animations_walker = load_jsonc(animation_path)
+    try:
+        animations_walker = load_jsonc(animation_path)
+    except json.JSONDecodeError:
+        # sinlently skip invalid files. The file is in db but has no data
+        return
 
     for animation_walker in animations_walker / "animations" // str:
         if not animation_walker.parent_key.startswith("animation."):
