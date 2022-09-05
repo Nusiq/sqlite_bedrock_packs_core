@@ -147,10 +147,10 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
         cursor.execute(
             '''
             INSERT INTO RenderController (
-                identifier, RenderControllerFile_fk
-            ) VALUES (?, ?)
+                identifier, RenderControllerFile_fk, jsonPath
+            ) VALUES (?, ?, ?)
             ''',
-            (rc.parent_key, file_pk)
+            (rc.parent_key, file_pk, rc.path_str)
         )
         rc_pk = cursor.lastrowid
         # LOAD TEXTURES
