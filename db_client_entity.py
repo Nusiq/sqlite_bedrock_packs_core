@@ -1,7 +1,7 @@
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json import load_jsonc
-
+import json
 
 CLIENT_ENTITY_BUILD_SCRIPT = '''
 -- Resource pack entity file & content
@@ -104,7 +104,11 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
         (entity_path.as_posix(), rp_id))
 
     file_pk = cursor.lastrowid
-    entity_jsonc = load_jsonc(entity_path)
+    try:
+        entity_jsonc = load_jsonc(entity_path)
+    except json.JSONDecodeError:
+        # sinlently skip invalid files. The file is in db but has no data
+        return
     description = entity_jsonc / "minecraft:client_entity" / "description"
 
     # ENTITY - IDENTIFIER

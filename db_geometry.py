@@ -1,7 +1,7 @@
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json import load_jsonc
-
+import json
 
 GEOMETRY_BUILD_SCRIPT = '''
 -- Geometry
@@ -48,7 +48,11 @@ def load_geometry(db: Connection, geometry_path: Path, rp_id: int):
         (geometry_path.as_posix(), rp_id)
     )
     file_pk = cursor.lastrowid
-    geometry_jsonc = load_jsonc(geometry_path)
+    try:
+        geometry_jsonc = load_jsonc(geometry_path)
+    except json.JSONDecodeError:
+        # sinlently skip invalid files. The file is in db but has no data
+        return
     # Try with 1.8.0 format
     for identifier in geometry_jsonc // str:
         if not identifier.parent_key.startswith("geometry."):

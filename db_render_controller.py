@@ -3,6 +3,7 @@ from sqlite3 import Connection
 from pathlib import Path
 from typing import Literal, NamedTuple
 from copy import copy
+import json
 
 from .better_json import JSONWalker, load_jsonc
 from .molang import find_molang_resources
@@ -135,7 +136,11 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
         "INSERT INTO RenderControllerFile (path, ResourcePack_fk) VALUES (?, ?)",
         (entity_path.as_posix(), rp_id))
     file_pk = cursor.lastrowid
-    entity_jsonc = load_jsonc(entity_path)
+    try:
+        entity_jsonc = load_jsonc(entity_path)
+    except json.JSONDecodeError:
+        # sinlently skip invalid files. The file is in db but has no data
+        return
     for rc in entity_jsonc / 'render_controllers' // str:
         if not rc.parent_key.startswith("controller.render."):
             continue

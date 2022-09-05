@@ -1,7 +1,7 @@
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json import load_jsonc
-
+import json
 
 PARTICLE_BUILD_SCRIPT = '''
 -- Particle
@@ -47,8 +47,11 @@ def load_particle(db: Connection, particle_path: Path, rp_id: int):
         (particle_path.as_posix(), rp_id)
     )
     file_pk = cursor.lastrowid
-    particle_walker = load_jsonc(particle_path)
-
+    try:
+        particle_walker = load_jsonc(particle_path)
+    except json.JSONDecodeError:
+        # sinlently skip invalid files. The file is in db but has no data
+        return
     description = particle_walker / "particle_effect" / "description"
     basic_render_parameters = description / "basic_render_parameters"
 
