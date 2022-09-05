@@ -51,10 +51,10 @@ def create_db(db_path: str = ":memory:") -> Connection:
 
 def load_rp(
         db: Connection, rp_path: Path, *,
-        selection_mode: Literal["include", "exclude"]="include",
-        geometries=True, client_entities=True, render_controllers=True,
-        textures=True, particles=True, rp_animations=True,
-        rp_animation_controllers=True, attachables=True):
+        selection_mode: Literal["include", "exclude"]="exclude",
+        geometries=False, client_entities=False, render_controllers=False,
+        textures=False, particles=False, rp_animations=False,
+        rp_animation_controllers=False, attachables=False):
     rp_pk = load_resource_pack(db, rp_path)
     if selection_mode not in ("include", "exclude"):
         raise ValueError("selection_mode must be 'include' or 'exclude'")
