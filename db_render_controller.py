@@ -14,7 +14,7 @@ CREATE TABLE RenderControllerFile (
     RenderControllerFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ResourcePack_fk INTEGER,
 
-    path Path,
+    path Path NOT NULL,
     FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
         ON DELETE CASCADE
 );
@@ -25,8 +25,8 @@ CREATE TABLE RenderController (
     RenderController_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     RenderControllerFile_fk INTEGER NOT NULL,
 
-    identifier TEXT,
-    jsonPath TEXT,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (RenderControllerFile_fk) REFERENCES RenderControllerFile (RenderControllerFile_pk)
         ON DELETE CASCADE
@@ -40,8 +40,8 @@ CREATE TABLE RenderControllerTexturesField (
 
     ownerArray TEXT,
     inOwnerArrayJsonPath TEXT, -- Path to the item in the owner array
-    shortName TEXT,
-    jsonPath TEXT,
+    shortName TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (RenderController_fk) REFERENCES RenderController (RenderController_pk)
         ON DELETE CASCADE
@@ -55,8 +55,8 @@ CREATE TABLE RenderControllerMaterialsField (
 
     ownerArray TEXT,
     inOwnerArrayJsonPath TEXT, -- Path to the item in the owner array
-    shortName TEXT,
-    jsonPath TEXT,
+    shortName TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     -- The star pattern that matches the bone name
     boneNamePattern TEXT,
@@ -72,8 +72,8 @@ CREATE TABLE RenderControllerGeometryField (
 
     ownerArray TEXT,
     inOwnerArrayJsonPath TEXT, -- Path to the item in the owner array
-    shortName TEXT,
-    jsonPath TEXT,
+    shortName TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (RenderController_fk) REFERENCES RenderController (RenderController_pk)
         ON DELETE CASCADE

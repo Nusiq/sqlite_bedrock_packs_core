@@ -9,7 +9,7 @@ CREATE TABLE ParticleFile (
     ParticleFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ResourcePack_fk INTEGER,
 
-    path Path,
+    path Path NOT NULL,
     FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
         ON DELETE CASCADE
 );
@@ -20,7 +20,7 @@ CREATE TABLE Particle (
     Particle_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ParticleFile_fk INTEGER NOT NULL,
 
-    identifier TEXT,
+    identifier TEXT NOT NULL,
     material TEXT,
     texture TEXT,
     FOREIGN KEY (ParticleFile_fk) REFERENCES ParticleFile (ParticleFile_pk)
@@ -61,7 +61,7 @@ def load_particle(db: Connection, particle_path: Path, rp_id: int):
 
     identifier_data = identifier.data
     if not isinstance(identifier_data, str):
-        identifier_data = None
+        return
     material_data = material.data
     if not isinstance(material.data, str):
         material_data = None

@@ -8,10 +8,10 @@ CREATE TABLE TextureFile (
     TextureFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ResourcePack_fk INTEGER,
 
-    path Path,
+    path Path NOT NULL,
     -- The identifier is the path without extension. This is added to the DB to
     -- make searches easier.
-    identifier TEXT,
+    identifier TEXT NOT NULL,
     FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
         ON DELETE CASCADE
 );

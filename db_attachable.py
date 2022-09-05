@@ -9,7 +9,7 @@ CREATE TABLE AttachableFile (
     AttachableFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ResourcePack_fk INTEGER,
 
-    path Path,
+    path Path NOT NULL,
     FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
         ON DELETE CASCADE
 );
@@ -20,7 +20,7 @@ CREATE TABLE Attachable (
     Attachable_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     AttachableFile_fk INTEGER NOT NULL,
 
-    identifier TEXT,
+    identifier TEXT NOT NULL,
 
     FOREIGN KEY (AttachableFile_fk) REFERENCES AttachableFile (AttachableFile_pk)
         ON DELETE CASCADE
@@ -36,9 +36,9 @@ CREATE TABLE AttachableItemField (
     AttachableItemField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     Attachable_fk INTEGER NOT NULL,
 
-    identifier TEXT,
+    identifier TEXT NOT NULL,
     condition TEXT,
-    jsonPath TEXT,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
         ON DELETE CASCADE
@@ -50,9 +50,9 @@ CREATE TABLE AttachableMaterialField (
     AttachableMaterialField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     Attachable_fk INTEGER NOT NULL,
 
-    shortName TEXT,
-    identifier TEXT,
-    jsonPath TEXT,
+    shortName TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
         ON DELETE CASCADE
@@ -64,9 +64,9 @@ CREATE TABLE AttachableTextureField (
     AttachableTextureField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     Attachable_fk INTEGER NOT NULL,
 
-    shortName TEXT,
-    identifier TEXT,
-    jsonPath TEXT,
+    shortName TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
         ON DELETE CASCADE
@@ -78,9 +78,9 @@ CREATE TABLE AttachableGeometryField (
     AttachableGeometryField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     Attachable_fk INTEGER NOT NULL,
 
-    shortName TEXT,
-    identifier TEXT,
-    jsonPath TEXT,
+    shortName TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
         ON DELETE CASCADE
@@ -93,9 +93,9 @@ CREATE TABLE AttachableRenderControllerField (
     AttachableRenderControllerField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     Attachable_fk INTEGER NOT NULL,
 
-    identifier TEXT,
+    identifier TEXT NOT NULL,
     condition TEXT,
-    jsonPath TEXT,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
         ON DELETE CASCADE

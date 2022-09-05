@@ -9,7 +9,7 @@ CREATE TABLE GeometryFile (
     GeometryFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ResourcePack_fk INTEGER,
 
-    path Path,
+    path Path NOT NULL,
     FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
         ON DELETE CASCADE
 );
@@ -20,9 +20,9 @@ CREATE TABLE Geometry (
     Geometry_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     GeometryFile_fk INTEGER NOT NULL,
 
-    identifier TEXT,
+    identifier TEXT NOT NULL,
     parent TEXT,
-    jsonPath TEXT,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (GeometryFile_fk) REFERENCES GeometryFile (GeometryFile_pk)
         ON DELETE CASCADE

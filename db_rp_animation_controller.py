@@ -9,7 +9,7 @@ CREATE TABLE RpAnimationControllerFile (
     RpAnimationControllerFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ResourcePack_fk INTEGER,
 
-    path Path,
+    path Path NOT NULL,
     FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
         ON DELETE CASCADE
 );
@@ -20,8 +20,8 @@ CREATE TABLE RpAnimationController (
     RpAnimationController_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     RpAnimationControllerFile_fk INTEGER NOT NULL,
 
-    identifier TEXT,
-    jsonPath TEXT,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
     
     FOREIGN KEY (RpAnimationControllerFile_fk) REFERENCES RpAnimationControllerFile (RpAnimationControllerFile_pk)
         ON DELETE CASCADE
@@ -33,8 +33,8 @@ CREATE TABLE RpAnimationControllerParticleEffect (
     RpAnimationControllerParticleEffect_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     RpAnimationController_fk INTEGER NOT NULL,
 
-    shortName TEXT,
-    jsonPath TEXT,
+    shortName TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (RpAnimationController_fk) REFERENCES RpAnimationController (RpAnimationController_pk)
         ON DELETE CASCADE
@@ -46,8 +46,8 @@ CREATE TABLE RpAnimationControllerSoundEffect (
     RpAnimationControllerSoundEffect_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     RpAnimationController_fk INTEGER NOT NULL,
 
-    shortName TEXT,
-    jsonPath TEXT,
+    shortName TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (RpAnimationController_fk) REFERENCES RpAnimationController (RpAnimationController_pk)
         ON DELETE CASCADE

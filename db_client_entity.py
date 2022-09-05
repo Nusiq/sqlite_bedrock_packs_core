@@ -9,7 +9,7 @@ CREATE TABLE ClientEntityFile (
     ClientEntityFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ResourcePack_fk INTEGER,
 
-    path Path,
+    path Path NOT NULL,
     FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
         ON DELETE CASCADE
 );
@@ -20,7 +20,7 @@ CREATE TABLE ClientEntity (
     ClientEntity_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ClientEntityFile_fk INTEGER NOT NULL,
 
-    identifier TEXT,
+    identifier TEXT NOT NULL,
     FOREIGN KEY (ClientEntityFile_fk) REFERENCES ClientEntityFile (ClientEntityFile_pk)
         ON DELETE CASCADE
 );
@@ -31,9 +31,9 @@ CREATE TABLE ClientEntityRenderControllerField (
     ClientEntityRenderControllerField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ClientEntity_fk INTEGER NOT NULL,
 
-    identifier TEXT,
+    identifier TEXT NOT NULL,
     condition TEXT,
-    jsonPath TEXT,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
         ON DELETE CASCADE
@@ -45,9 +45,9 @@ CREATE TABLE ClientEntityGeometryField (
     ClientEntityGeometryField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ClientEntity_fk INTEGER NOT NULL,
 
-    shortName TEXT,
-    identifier TEXT,
-    jsonPath TEXT,
+    shortName TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
     
     FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
         ON DELETE CASCADE
@@ -60,10 +60,10 @@ CREATE TABLE ClientEntityTextureField (
     ClientEntity_fk INTEGER NOT NULL,
 
 
-    shortName TEXT,
+    shortName TEXT NOT NULL,
     -- identifier is the path without the extension
-    identifier TEXT,
-    jsonPath TEXT,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
         ON DELETE CASCADE
@@ -76,9 +76,9 @@ CREATE TABLE ClientEntityMaterialField (
     ClientEntityMaterialField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
     ClientEntity_fk INTEGER NOT NULL,
 
-    shortName TEXT,
-    identifier TEXT,
-    jsonPath TEXT,
+    shortName TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
 
     FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
         ON DELETE CASCADE

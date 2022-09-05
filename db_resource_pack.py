@@ -7,7 +7,7 @@ RESOURCE_PACK_BUILD_SCRIPT = '''
 CREATE TABLE ResourcePack (
     ResourcePack_pk INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    path Path
+    path Path NOT NULL
 );
 CREATE INDEX ResourcePack_path
 ON ResourcePack (path);
