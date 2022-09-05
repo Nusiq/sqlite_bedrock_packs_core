@@ -1,6 +1,7 @@
 from pathlib import Path
 from sqlite3 import Connection
 import sqlite3
+from typing import Literal
 
 from .db_resource_pack import RESOURCE_PACK_BUILD_SCRIPT, load_resource_pack
 from .db_geometry import GEOMETRY_BUILD_SCRIPT, load_geometries
@@ -49,23 +50,28 @@ def create_db(db_path: str = ":memory:") -> Connection:
     return db
 
 def load_rp(
-        db: Connection, rp_path: Path, geometries=True, client_entities=True,
-        render_controllers=True, textures=True, particles=True,
-        rp_animations=True, rp_animation_controllers=True, attachables=True):
+        db: Connection, rp_path: Path, *,
+        selection_mode: Literal["include", "exclude"]="include",
+        geometries=True, client_entities=True, render_controllers=True,
+        textures=True, particles=True, rp_animations=True,
+        rp_animation_controllers=True, attachables=True):
     rp_pk = load_resource_pack(db, rp_path)
-    if geometries:
+    if selection_mode not in ("include", "exclude"):
+        raise ValueError("selection_mode must be 'include' or 'exclude'")
+    exclude = selection_mode == "exclude"
+    if geometries != exclude:  # XOR
         load_geometries(db, rp_pk)
-    if client_entities:
+    if client_entities != exclude:
         load_client_entities(db, rp_pk)
-    if render_controllers:
+    if render_controllers  != exclude:
         load_render_controllers(db, rp_pk)
-    if textures:
+    if textures  != exclude:
         load_textures(db, rp_pk)
-    if particles:
+    if particles  != exclude:
         load_particles(db, rp_pk)
-    if rp_animations:
+    if rp_animations  != exclude:
         load_rp_animations(db, rp_pk)
-    if rp_animation_controllers:
+    if rp_animation_controllers  != exclude:
         load_rp_animation_controllers(db, rp_pk)
-    if attachables:
+    if attachables  != exclude:
         load_attachables(db, rp_pk)
