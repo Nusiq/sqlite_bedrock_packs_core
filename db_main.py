@@ -49,6 +49,17 @@ def create_db(db_path: str = ":memory:") -> Connection:
     db.executescript(ATTACHABLE_BUILD_SCRIPT)
     return db
 
+def open_db(db_path: str) -> Connection:
+    '''
+    Opens a database previously created by sqlite_bedrock_packs. This function
+    doesn't check if the database has a valid structure. It assumes it does.
+    The only thing it does except opening the database is to register the
+    Path type adapter and converter.
+    '''
+    sqlite3.register_adapter(Path, _path_adapter)
+    sqlite3.register_converter("Path", _path_converter)
+    return sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+
 def load_rp(
         db: Connection, rp_path: Path, *,
         selection_mode: Literal["include", "exclude"]="exclude",
