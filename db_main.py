@@ -86,3 +86,4 @@ def load_rp(
         load_rp_animation_controllers(db, rp_pk)
     if attachables  != exclude:
         load_attachables(db, rp_pk)
+    db.commit()
