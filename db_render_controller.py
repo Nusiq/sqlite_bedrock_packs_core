@@ -169,7 +169,6 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                     ''',
                     (rc_pk, texture_reference, field.path_str)
                 )
-                values["texture"].remove(texture_reference)
             # Access through array
             for array_name in values["array"]:
                 for texture_reference in texture_arrays.get(array_name, []):

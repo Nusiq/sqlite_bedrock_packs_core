@@ -1,4 +1,4 @@
 from .db_main import create_db, load_rp, open_db
 
-VERSION = (0, 0, 6)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
+VERSION = (0, 0, 7)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
 __version__ = '.'.join([str(x) for x in VERSION])
