@@ -1,7 +1,7 @@
 from pathlib import Path
 from sqlite3 import Connection
 import sqlite3
-from typing import Literal
+from typing import Collection, Literal
 
 from .db_resource_pack import RESOURCE_PACK_BUILD_SCRIPT, load_resource_pack
 from .db_geometry import GEOMETRY_BUILD_SCRIPT, load_geometries
@@ -60,30 +60,64 @@ def open_db(db_path: str) -> Connection:
     sqlite3.register_converter("Path", _path_converter)
     return sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
 
+DbItems = Literal[
+    "geometries",
+    "client_entities",
+    "render_controllers",
+    "textures",
+    "particles",
+    "rp_animations",
+    "rp_animation_controllers",
+    "attachables",
+]
+
 def load_rp(
-        db: Connection, rp_path: Path, *,
-        selection_mode: Literal["include", "exclude"]="exclude",
-        geometries=False, client_entities=False, render_controllers=False,
-        textures=False, particles=False, rp_animations=False,
-        rp_animation_controllers=False, attachables=False):
+        db: Connection,
+        rp_path: Path, *,
+        include: Collection[DbItems] = (
+            "geometries",
+            "client_entities",
+            "render_controllers",
+            "textures",
+            "particles",
+            "rp_animations",
+            "rp_animation_controllers",
+            "attachables",
+        ),
+        exclude: Collection[DbItems] = tuple()
+    ) -> None:
+
     rp_pk = load_resource_pack(db, rp_path)
-    if selection_mode not in ("include", "exclude"):
-        raise ValueError("selection_mode must be 'include' or 'exclude'")
-    exclude = selection_mode == "exclude"
-    if geometries != exclude:  # XOR
+    if (
+            "geometries" in include and
+            "geometries" not in exclude):
         load_geometries(db, rp_pk)
-    if client_entities != exclude:
+    if (
+            "client_entities" in include and
+            "client_entities" not in exclude):
         load_client_entities(db, rp_pk)
-    if render_controllers  != exclude:
+    if (
+            "render_controllers" in include and
+            "render_controllers" not in exclude):
         load_render_controllers(db, rp_pk)
-    if textures  != exclude:
+    if (
+            "textures" in include and
+            "textures" not in exclude):
         load_textures(db, rp_pk)
-    if particles  != exclude:
+    if (
+            "particles" in include and
+            "particles"  not in exclude):
         load_particles(db, rp_pk)
-    if rp_animations  != exclude:
+    if (
+            "rp_animations " in include and
+            "rp_animations"  not in exclude):
         load_rp_animations(db, rp_pk)
-    if rp_animation_controllers  != exclude:
+    if (
+            "rp_animation_controllers " in include and
+            "rp_animation_controllers"  not in exclude):
         load_rp_animation_controllers(db, rp_pk)
-    if attachables  != exclude:
+    if (
+            "attachables " in include and
+            "attachables"  not in exclude):
         load_attachables(db, rp_pk)
     db.commit()
