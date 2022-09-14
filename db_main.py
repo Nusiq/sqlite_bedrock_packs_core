@@ -109,15 +109,15 @@ def load_rp(
             "particles"  not in exclude):
         load_particles(db, rp_pk)
     if (
-            "rp_animations " in include and
+            "rp_animations" in include and
             "rp_animations"  not in exclude):
         load_rp_animations(db, rp_pk)
     if (
-            "rp_animation_controllers " in include and
+            "rp_animation_controllers" in include and
             "rp_animation_controllers"  not in exclude):
         load_rp_animation_controllers(db, rp_pk)
     if (
-            "attachables " in include and
+            "attachables" in include and
             "attachables"  not in exclude):
         load_attachables(db, rp_pk)
     db.commit()
