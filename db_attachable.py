@@ -157,8 +157,8 @@ def load_attachable(db: Connection, attachable_path: Path, rp_id: int):
         return
     # ATTACHABLE
     description = walker / "minecraft:attachable" / "description"
-    identifier = description / 'identifier'
-    identifier_data = identifier.data
+    identifier_walker = description / 'identifier'
+    identifier_data = identifier_walker.data
     if not isinstance(identifier_data, str):
         return
     cursor.execute(
@@ -180,7 +180,7 @@ def load_attachable(db: Connection, attachable_path: Path, rp_id: int):
                 identifier, Attachable_fk, jsonPath
             ) VALUES (?, ?, ?)
             ''',
-            (identifier_data, attachable_pk, identifier.path_str)
+            (identifier_data, attachable_pk, identifier_walker.path_str)
         )
     else:
         for item in items:

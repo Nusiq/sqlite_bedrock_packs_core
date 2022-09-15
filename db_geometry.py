@@ -1,3 +1,4 @@
+from typing import cast, Optional
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json import load_jsonc
@@ -55,12 +56,13 @@ def load_geometry(db: Connection, geometry_path: Path, rp_id: int):
         return
     # Try with 1.8.0 format
     for identifier in geometry_jsonc // str:
-        if not identifier.parent_key.startswith("geometry."):
+        full_identifier = cast(str, identifier.parent_key)
+        if not full_identifier.startswith("geometry."):
             continue
         # Check for inheritance
-        split = identifier.parent_key.split(":", 1)
-        id = identifier.parent_key
-        parent = None
+        split = full_identifier.split(":", 1)
+        id = full_identifier
+        parent: Optional[str] = None
         if len(split)  == 2:
             id, parent = split
         cursor.execute(

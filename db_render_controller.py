@@ -1,3 +1,4 @@
+from typing import cast
 from collections import defaultdict
 from sqlite3 import Connection
 from pathlib import Path
@@ -119,7 +120,8 @@ def _load_rc_arrays(
     for obj in array_path:
         if not isinstance(obj.data, str):
             continue
-        array_name = obj.parent.parent_key.lower()
+        array_name = cast(str, obj.parent.parent_key)
+        array_name = array_name.lower()
         if not array_name.startswith("array."):
             continue
         array_name = array_name[6:]
@@ -142,7 +144,8 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
         # sinlently skip invalid files. The file is in db but has no data
         return
     for rc in entity_jsonc / 'render_controllers' // str:
-        if not rc.parent_key.startswith("controller.render."):
+        rc_parent_key = cast(str, rc.parent_key)
+        if not rc_parent_key.startswith("controller.render."):
             continue
         cursor.execute(
             '''
@@ -150,7 +153,7 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                 identifier, RenderControllerFile_fk, jsonPath
             ) VALUES (?, ?, ?)
             ''',
-            (rc.parent_key, file_pk, rc.path_str)
+            (rc_parent_key, file_pk, rc.path_str)
         )
         rc_pk = cursor.lastrowid
         # LOAD TEXTURES
@@ -160,14 +163,14 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                 continue
             values = find_molang_resources(field.data, ["texture", "array"])
             # Direct access
-            for texture_reference in values["texture"]:
+            for short_name in values["texture"]:
                 cursor.execute(
                     '''
                     INSERT INTO RenderControllerTexturesField (
                         RenderController_fk, shortName, jsonPath
                     ) VALUES (?, ?, ?)
                     ''',
-                    (rc_pk, texture_reference, field.path_str)
+                    (rc_pk, short_name, field.path_str)
                 )
             # Access through array
             for array_name in values["array"]:
@@ -198,7 +201,7 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
             pattern = field.parent_key
             values = find_molang_resources(field.data, ["material", "array"])
             # Direct access
-            for material_reference in copy(values["material"]):
+            for short_name in copy(values["material"]):
                 cursor.execute(
                     '''
                     INSERT INTO RenderControllerMaterialsField (
@@ -206,7 +209,7 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                         boneNamePattern
                     ) VALUES (?, ?, ?, ?)
                     ''',
-                    (rc_pk, material_reference, field.path_str, pattern)
+                    (rc_pk, short_name, field.path_str, pattern)
                 )
             # Access through array
             for array_name in values["array"]:
@@ -238,14 +241,14 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
         if isinstance(field.data, str):
             values = find_molang_resources(field.data, ["geometry", "array"])
             # Direct access
-            for geometry_reference in copy(values["geometry"]):
+            for short_name in copy(values["geometry"]):
                 cursor.execute(
                     '''
                     INSERT INTO RenderControllerGeometryField (
                         RenderController_fk, shortName, jsonPath
                     ) VALUES (?, ?, ?)
                     ''',
-                    (rc_pk, geometry_reference, field.path_str)
+                    (rc_pk, short_name, field.path_str)
                 )
             # Access through array
             for array_name in values["array"]:

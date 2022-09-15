@@ -1,7 +1,7 @@
 from pathlib import Path
 from sqlite3 import Connection
 import sqlite3
-from typing import Collection, Literal
+from typing import Iterable, Literal
 
 from .db_resource_pack import RESOURCE_PACK_BUILD_SCRIPT, load_resource_pack
 from .db_geometry import GEOMETRY_BUILD_SCRIPT, load_geometries
@@ -74,7 +74,7 @@ DbItems = Literal[
 def load_rp(
         db: Connection,
         rp_path: Path, *,
-        include: Collection[DbItems] = (
+        include: Iterable[DbItems] = (
             "geometries",
             "client_entities",
             "render_controllers",
@@ -84,7 +84,7 @@ def load_rp(
             "rp_animation_controllers",
             "attachables",
         ),
-        exclude: Collection[DbItems] = tuple()
+        exclude: Iterable[DbItems] = tuple()
     ) -> None:
 
     rp_pk = load_resource_pack(db, rp_path)

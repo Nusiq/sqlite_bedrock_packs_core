@@ -1,3 +1,4 @@
+from typing import cast
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json import load_jsonc
@@ -81,9 +82,9 @@ def load_rp_animation_controller(db: Connection, animation_controller_path: Path
         return
 
     for ac_walker in acs_walker / "animation_controllers" // str:
-        if not ac_walker.parent_key.startswith("controller.animation."):
+        identifier_data: str = cast(str, ac_walker.parent_key)
+        if not identifier_data.startswith("controller.animation."):
             continue
-        identifier_data = ac_walker.parent_key
         cursor.execute(
             '''
             INSERT INTO RpAnimationController (

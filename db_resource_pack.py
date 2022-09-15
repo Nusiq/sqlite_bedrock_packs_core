@@ -25,4 +25,4 @@ def load_resource_pack(db: Connection, rp_path: Union[Path, str]) -> int:
     cursor.execute(
         "INSERT INTO ResourcePack (path) VALUES (?)",
         (rp_path,))
-    return cursor.lastrowid
+    return cursor.lastrowid  # type: ignore

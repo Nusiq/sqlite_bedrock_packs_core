@@ -1,3 +1,4 @@
+from typing import cast
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json import load_jsonc
@@ -80,9 +81,9 @@ def load_rp_animation(db: Connection, animation_path: Path, rp_id: int):
         return
 
     for animation_walker in animations_walker / "animations" // str:
-        if not animation_walker.parent_key.startswith("animation."):
+        identifier_data: str = cast(str, animation_walker.parent_key)
+        if not identifier_data.startswith("animation."):
             continue
-        identifier_data = animation_walker.parent_key
         cursor.execute(
             '''
             INSERT INTO RpAnimation (
