@@ -85,6 +85,34 @@ CREATE TABLE ClientEntityMaterialField (
 );
 CREATE INDEX ClientEntityMaterialField_ClientEntity_fk
 ON ClientEntityMaterialField (ClientEntity_fk);
+
+CREATE TABLE ClientEntityAnimationField (
+    ClientEntityAnimationField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+    ClientEntity_fk INTEGER NOT NULL,
+
+    shortName TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
+
+    FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
+        ON DELETE CASCADE
+);
+CREATE INDEX ClientEntityAnimationField_ClientEntity_fk
+ON ClientEntityAnimationField (ClientEntity_fk);
+
+CREATE TABLE ClientEntityAnimationControllerField (
+    ClientEntityAnimationControllerField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+    ClientEntity_fk INTEGER NOT NULL,
+
+    shortName TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
+
+    FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
+        ON DELETE CASCADE
+);
+CREATE INDEX ClientEntityAnimationControllerField_ClientEntity_fk
+ON ClientEntityAnimationControllerField (ClientEntity_fk);
 '''
 
 def load_client_entities(db: Connection, rp_id: int):
@@ -189,3 +217,28 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
             ) VALUES (?, ?, ?, ?)
             ''',
             (entity_pk, geometry.parent_key, identifier, geometry.path_str))
+    # ANIMATIONS & ANIMATION CONTROLLERS
+    for animation in description / "animations" // str:
+        if isinstance(animation.data, str):
+            identifier = animation.data
+        else:
+            continue
+        if animation.data.startswith("controller.animation."):
+            # Animations
+            cursor.execute(
+                '''
+                INSERT INTO ClientEntityAnimationControllerField (
+                    ClientEntity_fk, shortName, identifier, jsonPath
+                ) VALUES (?, ?, ?, ?)
+                ''',
+                (entity_pk, animation.parent_key, identifier, animation.path_str))
+        elif animation.data.startswith("animation."):
+            # Animation Controllers
+
+            cursor.execute(
+                '''
+                INSERT INTO ClientEntityAnimationField (
+                    ClientEntity_fk, shortName, identifier, jsonPath
+                ) VALUES (?, ?, ?, ?)
+                ''',
+                (entity_pk, animation.parent_key, identifier, animation.path_str))

@@ -102,6 +102,35 @@ CREATE TABLE AttachableRenderControllerField (
 );
 CREATE INDEX AttachableRenderControllerField_Attachable_fk
 ON AttachableRenderControllerField (Attachable_fk);
+
+
+CREATE TABLE AttachableAnimationField (
+    AttachableAnimationField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+    Attachable_fk INTEGER NOT NULL,
+
+    shortName TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
+
+    FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
+        ON DELETE CASCADE
+);
+CREATE INDEX AttachableAnimationField_Attachable_fk
+ON AttachableAnimationField (Attachable_fk);
+
+CREATE TABLE AttachableAnimationControllerField (
+    AttachableAnimationControllerField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+    Attachable_fk INTEGER NOT NULL,
+
+    shortName TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
+
+    FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
+        ON DELETE CASCADE
+);
+CREATE INDEX AttachableAnimationControllerField_Attachable_fk
+ON AttachableAnimationControllerField (Attachable_fk);
 '''
 
 def load_attachables(db: Connection, rp_id: int):
@@ -251,3 +280,28 @@ def load_attachable(db: Connection, attachable_path: Path, rp_id: int):
                         attachable_pk, render_controller.path_str
                     )
                 )
+    # ANIMATIONS & ANIMATION CONTROLLERS
+    for animation in description / "animations" // str:
+        if isinstance(animation.data, str):
+            identifier = animation.data
+        else:
+            continue
+        if animation.data.startswith("controller.animation."):
+            # Animations
+            cursor.execute(
+                '''
+                INSERT INTO AttachableAnimationControllerField (
+                    Attachable_fk, shortName, identifier, jsonPath
+                ) VALUES (?, ?, ?, ?)
+                ''',
+                (attachable_pk, animation.parent_key, identifier, animation.path_str))
+        elif animation.data.startswith("animation."):
+            # Animation Controllers
+
+            cursor.execute(
+                '''
+                INSERT INTO AttachableAnimationField (
+                    Attachable_fk, shortName, identifier, jsonPath
+                ) VALUES (?, ?, ?, ?)
+                ''',
+                (attachable_pk, animation.parent_key, identifier, animation.path_str))
