@@ -14,6 +14,10 @@ from .db_rp_animation import RP_ANIMATION_BUILD_SCRIPT, load_rp_animations
 from .db_rp_animation_controller import (
     RP_ANIMATION_CONTROLLER_BUILD_SCRIPT, load_rp_animation_controllers)
 from .db_attachable import ATTACHABLE_BUILD_SCRIPT, load_attachables
+from .db_sound_definitions import (
+    SOUND_DEFINITIONS_BUILD_SCRIPT, load_sound_definitions)
+from .db_sound import (
+    SOUND_BUILD_SCRIPT, load_sounds)
 
 SCRIPT = '''
 PRAGMA foreign_keys = ON;
@@ -47,6 +51,8 @@ def create_db(db_path: str = ":memory:") -> Connection:
     db.executescript(RP_ANIMATION_BUILD_SCRIPT)
     db.executescript(RP_ANIMATION_CONTROLLER_BUILD_SCRIPT)
     db.executescript(ATTACHABLE_BUILD_SCRIPT)
+    db.executescript(SOUND_DEFINITIONS_BUILD_SCRIPT)
+    db.executescript(SOUND_BUILD_SCRIPT)
     return db
 
 def open_db(db_path: str) -> Connection:
@@ -69,6 +75,8 @@ DbItems = Literal[
     "rp_animations",
     "rp_animation_controllers",
     "attachables",
+    "sound_definitions",
+    "sounds",
 ]
 
 def load_rp(
@@ -83,6 +91,8 @@ def load_rp(
             "rp_animations",
             "rp_animation_controllers",
             "attachables",
+            "sound_definitions",
+            "sounds",
         ),
         exclude: Iterable[DbItems] = tuple()
     ) -> None:
@@ -120,4 +130,12 @@ def load_rp(
             "attachables" in include and
             "attachables"  not in exclude):
         load_attachables(db, rp_pk)
+    if (
+            "sound_definitions" in include and
+            "sound_definitions"  not in exclude):
+        load_sound_definitions(db, rp_pk)
+    if (
+            "sounds" in include and
+            "sounds"  not in exclude):
+        load_sounds(db, rp_pk)
     db.commit()
