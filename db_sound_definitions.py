@@ -1,7 +1,7 @@
 from typing import cast, Optional
 from sqlite3 import Connection
 from pathlib import Path
-from .better_json import load_jsonc
+from .better_json_tools import load_jsonc
 import json
 
 SOUND_DEFINITIONS_BUILD_SCRIPT = '''

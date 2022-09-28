@@ -18,6 +18,9 @@ from .db_sound_definitions import (
     SOUND_DEFINITIONS_BUILD_SCRIPT, load_sound_definitions)
 from .db_sound import (
     SOUND_BUILD_SCRIPT, load_sounds)
+from .db_behavior_pack import (
+    BEHAVIOR_PACK_BUILD_SCRIPT, load_behavior_pack)
+
 
 SCRIPT = '''
 PRAGMA foreign_keys = ON;
@@ -41,8 +44,8 @@ def create_db(db_path: str = ":memory:") -> Connection:
     db.row_factory = sqlite3.Row
 
     db.executescript(SCRIPT)
-    db.executescript(RESOURCE_PACK_BUILD_SCRIPT)
 
+    db.executescript(RESOURCE_PACK_BUILD_SCRIPT)
     db.executescript(CLIENT_ENTITY_BUILD_SCRIPT)
     db.executescript(RENDER_CONTROLLER_BUILD_SCRIPT)
     db.executescript(GEOMETRY_BUILD_SCRIPT)
@@ -53,6 +56,8 @@ def create_db(db_path: str = ":memory:") -> Connection:
     db.executescript(ATTACHABLE_BUILD_SCRIPT)
     db.executescript(SOUND_DEFINITIONS_BUILD_SCRIPT)
     db.executescript(SOUND_BUILD_SCRIPT)
+
+    db.executescript(BEHAVIOR_PACK_BUILD_SCRIPT)
     return db
 
 def open_db(db_path: str) -> Connection:
@@ -66,7 +71,7 @@ def open_db(db_path: str) -> Connection:
     sqlite3.register_converter("Path", _path_converter)
     return sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
 
-DbItems = Literal[
+DbRpItems = Literal[
     "geometries",
     "client_entities",
     "render_controllers",
@@ -82,7 +87,7 @@ DbItems = Literal[
 def load_rp(
         db: Connection,
         rp_path: Path, *,
-        include: Iterable[DbItems] = (
+        include: Iterable[DbRpItems] = (
             "geometries",
             "client_entities",
             "render_controllers",
@@ -94,7 +99,7 @@ def load_rp(
             "sound_definitions",
             "sounds",
         ),
-        exclude: Iterable[DbItems] = tuple()
+        exclude: Iterable[DbRpItems] = tuple()
     ) -> None:
 
     rp_pk = load_resource_pack(db, rp_path)
@@ -138,4 +143,8 @@ def load_rp(
             "sounds" in include and
             "sounds"  not in exclude):
         load_sounds(db, rp_pk)
+    db.commit()
+
+def load_bp(db: Connection, bp_path: Path) -> None:
+    load_behavior_pack(db, bp_path)
     db.commit()

@@ -6,7 +6,7 @@ from typing import Literal, NamedTuple
 from copy import copy
 import json
 
-from .better_json import JSONWalker, load_jsonc
+from .better_json_tools import JSONWalker, load_jsonc
 from .molang import find_molang_resources
 
 RENDER_CONTROLLER_BUILD_SCRIPT = '''
