@@ -35,8 +35,12 @@ def _path_converter(path: bytes):
 
 def create_db(db_path: str = ":memory:") -> Connection:
     '''
-    Creates a new dtabase at db_path. Runs all of the build scripts of all of
+    Creates a new dtabase in :code:`db_path`. Runs all of the build scripts of
     the database components.
+
+    :param db_path: The path to the database file. The argument is passed to
+        :func:`sqlite3.connect` If the argument is :code:`":memory:"`, the
+        database is created in memory. :code:`":memory:"` is the default value.
     '''
     sqlite3.register_adapter(Path, _path_adapter)
     sqlite3.register_converter("Path", _path_converter)
@@ -62,10 +66,13 @@ def create_db(db_path: str = ":memory:") -> Connection:
 
 def open_db(db_path: str) -> Connection:
     '''
-    Opens a database previously created by sqlite_bedrock_packs. This function
-    doesn't check if the database has a valid structure. It assumes it does.
-    The only thing it does except opening the database is to register the
-    Path type adapter and converter.
+    Opens a database file. Usually these files are created by
+    :func:`create_db`. This function doesn't check if the database has a valid
+    structure. It assumes it does. This function only opens the database and
+    sets some sqlite3 adapter and converter functions for Path objects.
+
+    :param db_path: The path to the database file. The argument is passed to
+        :func:`sqlite3.connect`.
     '''
     sqlite3.register_adapter(Path, _path_adapter)
     sqlite3.register_converter("Path", _path_converter)
@@ -83,6 +90,10 @@ DbRpItems = Literal[
     "sound_definitions",
     "sounds",
 ]
+'''
+Possible values of :code:`include and :code:`exclude` arguments of
+:func:`load_rp` function.
+'''
 
 def load_rp(
         db: Connection,
@@ -101,7 +112,20 @@ def load_rp(
         ),
         exclude: Iterable[DbRpItems] = tuple()
     ) -> None:
+    '''
+    Loads resource pack data into the database.
 
+    :param db: The database connection.
+    :param rp_path: The path to the resource pack.
+    :param include: A list of items to include. By default, all items are
+        included.
+    :param exclude: A list of items to exclude. By default, no items are
+        excluded.
+
+    If there is an item in both include and exclude, it is excluded. The
+    include and exclude lists accept strings that are the names of the
+    supported database components.
+    '''
     rp_pk = load_resource_pack(db, rp_path)
     if (
             "geometries" in include and
@@ -146,5 +170,12 @@ def load_rp(
     db.commit()
 
 def load_bp(db: Connection, bp_path: Path) -> None:
+    '''
+    Loads behavior pack data into the database. Currently, this function only
+    loads the Behavior Pack table and doesn't load any objects from the pack.
+
+    :param db: The database connection.
+    :param rp_path: The path to the resource pack.
+    '''
     load_behavior_pack(db, bp_path)
     db.commit()
