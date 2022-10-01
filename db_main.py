@@ -22,6 +22,8 @@ from .db_behavior_pack import (
     BEHAVIOR_PACK_BUILD_SCRIPT, load_behavior_pack)
 from .db_entity import (
     ENTITY_BUILD_SCRIPT, load_entities)
+from .db_loot_table import (
+    LOOT_TABLE_BUILD_SCRIPT, load_loot_tables)
 
 SCRIPT = '''
 PRAGMA foreign_keys = ON;
@@ -64,6 +66,7 @@ def create_db(db_path: str = ":memory:") -> Connection:
 
     db.executescript(BEHAVIOR_PACK_BUILD_SCRIPT)
     db.executescript(ENTITY_BUILD_SCRIPT)
+    db.executescript(LOOT_TABLE_BUILD_SCRIPT)
     return db
 
 def open_db(db_path: str) -> Connection:
@@ -173,13 +176,14 @@ def load_rp(
 
 DbBpItems = Literal[
     "entities",
+    "loot_tables",
 ]
 
 def load_bp(
         db: Connection,
         bp_path: Path,
         include: Iterable[DbBpItems] = (
-            "entities",
+            "entities", "loot_tables"
         ),
         exclude: Iterable[DbRpItems] = tuple()) -> None:
     '''
@@ -199,7 +203,10 @@ def load_bp(
     bp_pk = load_behavior_pack(db, bp_path)
     if (
         "entities" in include and
-        "entities" not in exclude
-    ):
+        "entities" not in exclude):
         load_entities(db, bp_pk)
+    if (
+        "loot_tables" in include and
+        "loot_tables" not in exclude):
+        load_loot_tables(db, bp_pk)
     db.commit()
