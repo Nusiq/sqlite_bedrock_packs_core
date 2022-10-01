@@ -34,3 +34,38 @@ def find_molang_resources(
         for item_name in item_pattern.findall(molang):
             results[resource_prefix].append(item_name)
     return results
+
+def split_item_name(item_name: str) -> tuple[str, str, int]:
+    '''
+    Splits given name of the item into three parts: napespace, name and data
+    value. If the name is missing the namespace, than the default namespace
+    value is minecraft. If the data value is missing is set to 0.
+
+    In rare cases when the data value can't be converted to int, the data
+    value and the separator (:) are considered to be part of the name.
+
+    Example
+    -------
+    >>> split_item_name("minecraft:stone")
+    ('minecraft', 'stone', 0)
+    >>> split_item_name("stone")
+    ('minecraft', 'stone', 0)
+    >>> split_item_name("minecraft:stone:1")
+    ('minecraft', 'stone', 1)
+    '''
+    item_name = item_name.lower()
+    if ':' in item_name:
+        namespace, name = item_name.split(':', 1)
+    else:
+        namespace = 'minecraft'
+        name = item_name
+    if ':' in name:
+        name, data = name.rsplit(':', 1)
+        try:
+            data = int(data)
+        except ValueError:
+            name = f'{name}:{data}'
+            data = 0
+    else:
+        data = 0
+    return namespace, name, data
