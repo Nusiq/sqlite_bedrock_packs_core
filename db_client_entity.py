@@ -142,7 +142,7 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
     # ENTITY - IDENTIFIER
     identifier = (description / "identifier").data
     if not isinstance(identifier, str):
-        identifier = None
+        return  # Skip entitites without identifier
     cursor.execute(
         '''
         INSERT INTO ClientEntity (
@@ -183,7 +183,7 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
         if isinstance(material.data, str):
             identifier = material.data
         else:
-            identifier = None
+            continue  #  identifier must be NOT null
         cursor.execute(
             '''
             INSERT INTO ClientEntityMaterialField (
@@ -196,7 +196,7 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
         if isinstance(texture.data, str):
             identifier = texture.data
         else:
-            identifier = None
+            continue  # identifier must be NOT null
         cursor.execute(
             '''
             INSERT INTO ClientEntityTextureField (
@@ -209,7 +209,7 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
         if isinstance(geometry.data, str):
             identifier = geometry.data
         else:
-            identifier = None
+            continue  # identifier must be NOT null
         cursor.execute(
             '''
             INSERT INTO ClientEntityGeometryField (
@@ -224,7 +224,7 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
         else:
             continue
         if animation.data.startswith("controller.animation."):
-            # Animations
+            # Animation Controllers
             cursor.execute(
                 '''
                 INSERT INTO ClientEntityAnimationControllerField (
@@ -233,8 +233,7 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
                 ''',
                 (entity_pk, animation.parent_key, identifier, animation.path_str))
         elif animation.data.startswith("animation."):
-            # Animation Controllers
-
+            # Animations
             cursor.execute(
                 '''
                 INSERT INTO ClientEntityAnimationField (
