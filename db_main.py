@@ -20,7 +20,8 @@ from .db_sound import (
     SOUND_BUILD_SCRIPT, load_sounds)
 from .db_behavior_pack import (
     BEHAVIOR_PACK_BUILD_SCRIPT, load_behavior_pack)
-
+from .db_entity import (
+    ENTITY_BUILD_SCRIPT, load_entities)
 
 SCRIPT = '''
 PRAGMA foreign_keys = ON;
@@ -62,6 +63,7 @@ def create_db(db_path: str = ":memory:") -> Connection:
     db.executescript(SOUND_BUILD_SCRIPT)
 
     db.executescript(BEHAVIOR_PACK_BUILD_SCRIPT)
+    db.executescript(ENTITY_BUILD_SCRIPT)
     return db
 
 def open_db(db_path: str) -> Connection:
@@ -169,13 +171,35 @@ def load_rp(
         load_sounds(db, rp_pk)
     db.commit()
 
-def load_bp(db: Connection, bp_path: Path) -> None:
+DbBpItems = Literal[
+    "entities",
+]
+
+def load_bp(
+        db: Connection,
+        bp_path: Path,
+        include: Iterable[DbBpItems] = (
+            "entities",
+        ),
+        exclude: Iterable[DbRpItems] = tuple()) -> None:
     '''
-    Loads behavior pack data into the database. Currently, this function only
-    loads the Behavior Pack table and doesn't load any objects from the pack.
+    Loads behavior pack data into the database.
 
     :param db: The database connection.
-    :param rp_path: The path to the resource pack.
+    :param bp_path: The path to the resource pack.
+    :param include: A list of items to include. By default, all items are
+        included.
+    :param exclude: A list of items to exclude. By default, no items are
+        excluded.
+
+    If there is an item in both include and exclude, it is excluded. The
+    include and exclude lists accept strings that are the names of the
+    supported database components.
     '''
-    load_behavior_pack(db, bp_path)
+    bp_pk = load_behavior_pack(db, bp_path)
+    if (
+        "entities" in include and
+        "entities" not in exclude
+    ):
+        load_entities(db, bp_pk)
     db.commit()
