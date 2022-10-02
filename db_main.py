@@ -18,6 +18,8 @@ from .db_sound_definitions import (
     SOUND_DEFINITIONS_BUILD_SCRIPT, load_sound_definitions)
 from .db_sound import (
     SOUND_BUILD_SCRIPT, load_sounds)
+from .db_rp_item import (
+    RP_ITEM_BUILD_SCRIPT, load_rp_items)
 from .db_behavior_pack import (
     BEHAVIOR_PACK_BUILD_SCRIPT, load_behavior_pack)
 from .db_entity import (
@@ -72,6 +74,7 @@ def create_db(db_path: str = ":memory:") -> Connection:
     db.executescript(ATTACHABLE_BUILD_SCRIPT)
     db.executescript(SOUND_DEFINITIONS_BUILD_SCRIPT)
     db.executescript(SOUND_BUILD_SCRIPT)
+    db.executescript(RP_ITEM_BUILD_SCRIPT)
 
     db.executescript(BEHAVIOR_PACK_BUILD_SCRIPT)
     db.executescript(ENTITY_BUILD_SCRIPT)
@@ -107,6 +110,7 @@ DbRpItems = Literal[
     "attachables",
     "sound_definitions",
     "sounds",
+    "rp_items"
 ]
 '''
 Possible values of :code:`include and :code:`exclude` arguments of
@@ -127,6 +131,7 @@ def load_rp(
             "attachables",
             "sound_definitions",
             "sounds",
+            "rp_items"
         ),
         exclude: Iterable[DbRpItems] = tuple()
     ) -> None:
@@ -185,6 +190,10 @@ def load_rp(
             "sounds" in include and
             "sounds"  not in exclude):
         load_sounds(db, rp_pk)
+    if (
+            "rp_items" in include and
+            "rp_items" not in exclude):
+        load_rp_items(db, rp_pk)
     db.commit()
 
 DbBpItems = Literal[
