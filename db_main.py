@@ -30,6 +30,8 @@ from .db_bp_animation import (
     BP_ANIMATION_BUILD_SCRIPT, load_bp_animations)
 from .db_bp_animation_controller import (
     BP_ANIMATION_CONTROLLER_BUILD_SCRIPT, load_bp_animation_controllers)
+from .db_bp_item import (
+    BP_ITEM_BUILD_SCRIPT, load_bp_items)
 
 
 SCRIPT = '''
@@ -77,6 +79,7 @@ def create_db(db_path: str = ":memory:") -> Connection:
     db.executescript(TRADE_TABLE_BUILD_SCRIPT)
     db.executescript(BP_ANIMATION_BUILD_SCRIPT)
     db.executescript(BP_ANIMATION_CONTROLLER_BUILD_SCRIPT)
+    db.executescript(BP_ITEM_BUILD_SCRIPT)
     return db
 
 def open_db(db_path: str) -> Connection:
@@ -189,7 +192,8 @@ DbBpItems = Literal[
     "loot_tables",
     "trade_tables",
     "bp_animations"
-    "bp_animation_controllers"
+    "bp_animation_controllers",
+    "bp_items"
 ]
 
 def load_bp(
@@ -197,7 +201,7 @@ def load_bp(
         bp_path: Path,
         include: Iterable[DbBpItems] = (
             "entities", "loot_tables", "trade_tables", "bp_animations",
-            "bp_animation_controllers"
+            "bp_animation_controllers", "bp_items"
         ),
         exclude: Iterable[DbRpItems] = tuple()) -> None:
     '''
@@ -235,4 +239,8 @@ def load_bp(
             "bp_animation_controllers" in include and
             "bp_animation_controllers"  not in exclude):
         load_bp_animation_controllers(db, bp_pk)
+    if (
+            "bp_items" in include and
+            "bp_items"  not in exclude):
+        load_bp_items(db, bp_pk)
     db.commit()

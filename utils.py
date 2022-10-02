@@ -69,3 +69,9 @@ def split_item_name(item_name: str) -> tuple[str, str, int]:
     else:
         data = 0
     return namespace, name, data
+
+def parse_format_version(version: str) -> tuple[int, ...]:
+    '''
+    Parses string with format version (dot separated numbers).
+    '''
+    return tuple(int(part) for part in version.split('.'))
