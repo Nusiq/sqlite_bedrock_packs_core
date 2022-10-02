@@ -26,6 +26,11 @@ from .db_loot_table import (
     LOOT_TABLE_BUILD_SCRIPT, load_loot_tables)
 from .db_trade_table import (
     TRADE_TABLE_BUILD_SCRIPT, load_trade_tables)
+from .db_bp_animation import (
+    BP_ANIMATION_BUILD_SCRIPT, load_bp_animations)
+from .db_bp_animation_controller import (
+    BP_ANIMATION_CONTROLLER_BUILD_SCRIPT, load_bp_animation_controllers)
+
 
 SCRIPT = '''
 PRAGMA foreign_keys = ON;
@@ -70,6 +75,8 @@ def create_db(db_path: str = ":memory:") -> Connection:
     db.executescript(ENTITY_BUILD_SCRIPT)
     db.executescript(LOOT_TABLE_BUILD_SCRIPT)
     db.executescript(TRADE_TABLE_BUILD_SCRIPT)
+    db.executescript(BP_ANIMATION_BUILD_SCRIPT)
+    db.executescript(BP_ANIMATION_CONTROLLER_BUILD_SCRIPT)
     return db
 
 def open_db(db_path: str) -> Connection:
@@ -180,14 +187,17 @@ def load_rp(
 DbBpItems = Literal[
     "entities",
     "loot_tables",
-    "trade_tables"
+    "trade_tables",
+    "bp_animations"
+    "bp_animation_controllers"
 ]
 
 def load_bp(
         db: Connection,
         bp_path: Path,
         include: Iterable[DbBpItems] = (
-            "entities", "loot_tables", "trade_tables"
+            "entities", "loot_tables", "trade_tables", "bp_animations",
+            "bp_animation_controllers"
         ),
         exclude: Iterable[DbRpItems] = tuple()) -> None:
     '''
@@ -217,4 +227,12 @@ def load_bp(
             "trade_tables" in include and
             "trade_tables" not in exclude):
         load_trade_tables(db, bp_pk)
+    if (
+            "bp_animations" in include and
+            "bp_animations"  not in exclude):
+        load_bp_animations(db, bp_pk)
+    if (
+            "bp_animation_controllers" in include and
+            "bp_animation_controllers"  not in exclude):
+        load_bp_animation_controllers(db, bp_pk)
     db.commit()
