@@ -60,11 +60,11 @@ def split_item_name(item_name: str) -> tuple[str, str, int]:
         namespace = 'minecraft'
         name = item_name
     if ':' in name:
-        name, data = name.rsplit(':', 1)
+        name, data_str = name.rsplit(':', 1)
         try:
-            data = int(data)
+            data = int(data_str)
         except ValueError:
-            name = f'{name}:{data}'
+            name = f'{name}:{data_str}'
             data = 0
     else:
         data = 0

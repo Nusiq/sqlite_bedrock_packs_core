@@ -1,7 +1,10 @@
+from __future__ import annotations
+from dataclasses import dataclass
 from pathlib import Path
 from sqlite3 import Connection
 import sqlite3
-from typing import Iterable, Literal
+from typing import Literal
+from collections.abc import Container
 
 from .db_resource_pack import RESOURCE_PACK_BUILD_SCRIPT, load_resource_pack
 from .db_geometry import GEOMETRY_BUILD_SCRIPT, load_geometries
@@ -35,7 +38,6 @@ from .db_bp_animation_controller import (
 from .db_bp_item import (
     BP_ITEM_BUILD_SCRIPT, load_bp_items)
 
-
 SCRIPT = '''
 PRAGMA foreign_keys = ON;
 '''
@@ -43,11 +45,11 @@ PRAGMA foreign_keys = ON;
 def _path_adapter(path: Path):
     return path.as_posix()
 
-
 def _path_converter(path: bytes):
     return Path(path.decode('utf8'))
 
-def create_db(db_path: str = ":memory:") -> Connection:
+
+def _create_db(db_path: str = ":memory:") -> Connection:
     '''
     Creates a new dtabase in :code:`db_path`. Runs all of the build scripts of
     the database components.
@@ -85,7 +87,7 @@ def create_db(db_path: str = ":memory:") -> Connection:
     db.executescript(BP_ITEM_BUILD_SCRIPT)
     return db
 
-def open_db(db_path: str) -> Connection:
+def _open_db(db_path: str) -> Connection:
     '''
     Opens a database file. Usually these files are created by
     :func:`create_db`. This function doesn't check if the database has a valid
@@ -110,17 +112,61 @@ DbRpItems = Literal[
     "attachables",
     "sound_definitions",
     "sounds",
-    "rp_items"
+    "rp_items",
 ]
 '''
 Possible values of :code:`include and :code:`exclude` arguments of
 :func:`load_rp` function.
 '''
 
-def load_rp(
-        db: Connection,
+DbBpItems = Literal[
+    "entities",
+    "loot_tables",
+    "trade_tables",
+    "bp_animations",
+    "bp_animation_controllers",
+    "bp_items"
+]
+
+
+
+@dataclass
+class Database:
+    '''
+    A class that represents a database with resource packs and behavior packs.
+    '''
+
+    connection: Connection
+    '''The SQLite database conncetion.'''
+
+    @staticmethod
+    def open(db_path: str | Path) -> Database:
+        '''
+        Creates a database using  path to the database file.
+
+        :param db_path: the path to the database file
+        '''
+        if isinstance(db_path, Path):
+            db_path = db_path.as_posix()
+        db = _open_db(db_path)
+        return Database(db)
+
+    @staticmethod
+    def create(db_path: str | Path = ":memory:") -> Database:
+        '''
+        Creates a new database for storing resource packs and behavior packs in
+        memory or in a file. The default value is :code:`":memory:"` which
+        means that the database is created in memory (just like in sqlite3).
+
+        :param db_path: The path to the database file or :code:`":memory:"`.
+        '''
+        db = _create_db(db_path)
+        return Database(db)
+
+    def load_rp(
+        self,
         rp_path: Path, *,
-        include: Iterable[DbRpItems] = (
+        include: Container[DbRpItems] = (
             "geometries",
             "client_entities",
             "render_controllers",
@@ -133,123 +179,130 @@ def load_rp(
             "sounds",
             "rp_items"
         ),
-        exclude: Iterable[DbRpItems] = tuple()
+        exclude: Container[DbRpItems] = tuple()
     ) -> None:
-    '''
-    Loads resource pack data into the database.
+        '''
+        Loads resource pack data into the database.
 
-    :param db: The database connection.
-    :param rp_path: The path to the resource pack.
-    :param include: A list of items to include. By default, all items are
-        included.
-    :param exclude: A list of items to exclude. By default, no items are
-        excluded.
+        :param db: The database connection.
+        :param rp_path: The path to the resource pack.
+        :param include: A list of items to include. By default, all items are
+            included.
+        :param exclude: A list of items to exclude. By default, no items are
+            excluded.
 
-    If there is an item in both include and exclude, it is excluded. The
-    include and exclude lists accept strings that are the names of the
-    supported database components.
-    '''
-    rp_pk = load_resource_pack(db, rp_path)
-    if (
-            "geometries" in include and
-            "geometries" not in exclude):
-        load_geometries(db, rp_pk)
-    if (
-            "client_entities" in include and
-            "client_entities" not in exclude):
-        load_client_entities(db, rp_pk)
-    if (
-            "render_controllers" in include and
-            "render_controllers" not in exclude):
-        load_render_controllers(db, rp_pk)
-    if (
-            "textures" in include and
-            "textures" not in exclude):
-        load_textures(db, rp_pk)
-    if (
-            "particles" in include and
-            "particles"  not in exclude):
-        load_particles(db, rp_pk)
-    if (
-            "rp_animations" in include and
-            "rp_animations"  not in exclude):
-        load_rp_animations(db, rp_pk)
-    if (
-            "rp_animation_controllers" in include and
-            "rp_animation_controllers"  not in exclude):
-        load_rp_animation_controllers(db, rp_pk)
-    if (
-            "attachables" in include and
-            "attachables"  not in exclude):
-        load_attachables(db, rp_pk)
-    if (
-            "sound_definitions" in include and
-            "sound_definitions"  not in exclude):
-        load_sound_definitions(db, rp_pk)
-    if (
-            "sounds" in include and
-            "sounds"  not in exclude):
-        load_sounds(db, rp_pk)
-    if (
-            "rp_items" in include and
-            "rp_items" not in exclude):
-        load_rp_items(db, rp_pk)
-    db.commit()
+        If there is an item in both include and exclude, it is excluded. The
+        include and exclude lists accept strings that are the names of the
+        supported database components.
+        '''
+        rp_pk = load_resource_pack(self.connection, rp_path)
+        if (
+                "geometries" in include and
+                "geometries" not in exclude):
+            load_geometries(self.connection, rp_pk)
+        if (
+                "client_entities" in include and
+                "client_entities" not in exclude):
+            load_client_entities(self.connection, rp_pk)
+        if (
+                "render_controllers" in include and
+                "render_controllers" not in exclude):
+            load_render_controllers(self.connection, rp_pk)
+        if (
+                "textures" in include and
+                "textures" not in exclude):
+            load_textures(self.connection, rp_pk)
+        if (
+                "particles" in include and
+                "particles" not in exclude):
+            load_particles(self.connection, rp_pk)
+        if (
+                "rp_animations" in include and
+                "rp_animations" not in exclude):
+            load_rp_animations(self.connection, rp_pk)
+        if (
+                "rp_animation_controllers" in include and
+                "rp_animation_controllers" not in exclude):
+            load_rp_animation_controllers(self.connection, rp_pk)
+        if (
+                "attachables" in include and
+                "attachables" not in exclude):
+            load_attachables(self.connection, rp_pk)
+        if (
+                "sound_definitions" in include and
+                "sound_definitions" not in exclude):
+            load_sound_definitions(self.connection, rp_pk)
+        if (
+                "sounds" in include and
+                "sounds" not in exclude):
+            load_sounds(self.connection, rp_pk)
+        if (
+                "rp_items" in include and
+                "rp_items" not in exclude):
+            load_rp_items(self.connection, rp_pk)
+        self.connection.commit()
 
-DbBpItems = Literal[
-    "entities",
-    "loot_tables",
-    "trade_tables",
-    "bp_animations"
-    "bp_animation_controllers",
-    "bp_items"
-]
+    def load_bp(
+            self,
+            bp_path: Path, *,
+            include: Container[DbBpItems] = (
+                "entities",
+                "loot_tables",
+                "trade_tables",
+                "bp_animations",
+                "bp_animation_controllers",
+                "bp_items",
+            ),
+            exclude: Container[DbBpItems] = tuple()) -> None:
+        '''
+        Loads behavior pack data into the database.
 
-def load_bp(
-        db: Connection,
-        bp_path: Path,
-        include: Iterable[DbBpItems] = (
-            "entities", "loot_tables", "trade_tables", "bp_animations",
-            "bp_animation_controllers", "bp_items"
-        ),
-        exclude: Iterable[DbRpItems] = tuple()) -> None:
-    '''
-    Loads behavior pack data into the database.
+        :param db: The database connection.
+        :param bp_path: The path to the resource pack.
+        :param include: A list of items to include. By default, all items are
+            included.
+        :param exclude: A list of items to exclude. By default, no items are
+            excluded.
 
-    :param db: The database connection.
-    :param bp_path: The path to the resource pack.
-    :param include: A list of items to include. By default, all items are
-        included.
-    :param exclude: A list of items to exclude. By default, no items are
-        excluded.
+        If there is an item in both include and exclude, it is excluded. The
+        include and exclude lists accept strings that are the names of the
+        supported database components.
+        '''
+        bp_pk = load_behavior_pack(self.connection, bp_path)
+        if (
+                "entities" in include and
+                "entities" not in exclude):
+            load_entities(self.connection, bp_pk)
+        if (
+                "loot_tables" in include and
+                "loot_tables" not in exclude):
+            load_loot_tables(self.connection, bp_pk)
+        if (
+                "trade_tables" in include and
+                "trade_tables" not in exclude):
+            load_trade_tables(self.connection, bp_pk)
+        if (
+                "bp_animations" in include and
+                "bp_animations"  not in exclude):
+            load_bp_animations(self.connection, bp_pk)
+        if (
+                "bp_animation_controllers" in include and
+                "bp_animation_controllers"  not in exclude):
+            load_bp_animation_controllers(self.connection, bp_pk)
+        if (
+                "bp_items" in include and
+                "bp_items"  not in exclude):
+            load_bp_items(self.connection, bp_pk)
+        self.connection.commit()
 
-    If there is an item in both include and exclude, it is excluded. The
-    include and exclude lists accept strings that are the names of the
-    supported database components.
-    '''
-    bp_pk = load_behavior_pack(db, bp_path)
-    if (
-            "entities" in include and
-            "entities" not in exclude):
-        load_entities(db, bp_pk)
-    if (
-            "loot_tables" in include and
-            "loot_tables" not in exclude):
-        load_loot_tables(db, bp_pk)
-    if (
-            "trade_tables" in include and
-            "trade_tables" not in exclude):
-        load_trade_tables(db, bp_pk)
-    if (
-            "bp_animations" in include and
-            "bp_animations"  not in exclude):
-        load_bp_animations(db, bp_pk)
-    if (
-            "bp_animation_controllers" in include and
-            "bp_animation_controllers"  not in exclude):
-        load_bp_animation_controllers(db, bp_pk)
-    if (
-            "bp_items" in include and
-            "bp_items"  not in exclude):
-        load_bp_items(db, bp_pk)
-    db.commit()
+    def close(self):
+        '''
+        Runs close() function on the database connection.
+        '''
+        self.connection.close()
+        
+    def commit(self):
+        '''
+        Runs commit() function on the database connection.
+        '''
+        self.connection.commit()
