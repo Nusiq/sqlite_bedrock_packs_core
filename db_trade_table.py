@@ -48,6 +48,22 @@ CREATE TABLE TradeTableItemField (
 );
 CREATE INDEX TradeTableItemField_TradeTable_fk
 ON TradeTableItemField (TradeTable_fk);
+
+CREATE TABLE TradeTableItemSpawnEggReferenceField (
+    -- A reference to a spawn egg inside an item inside a trade table.
+
+    TradeTableItemSpawnEggReferenceField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+    TradeTableItemField_fk INTEGER NOT NULL,
+
+    entityIdentifier TEXT NOT NULL,
+    spawnEggIdentifier TEXT NOT NULL,
+    jsonPath TEXT NOT NULL,
+
+    FOREIGN KEY (TradeTableItemField_fk) REFERENCES TradeTableItemField (TradeTableItemField_pk)
+        ON DELETE CASCADE
+);
+CREATE INDEX TradeTableItemSpawnEggReferenceField_TradeTableItemField_fk
+ON TradeTableItemSpawnEggReferenceField (TradeTableItemField_fk);
 '''
 
 def load_trade_tables(db: Connection, rp_id: int):
@@ -97,13 +113,15 @@ def load_trade_table(
         trade_walker / "wants" // int
     )
     item_walker = (
-        gives_wants_walker / "item" +
-        gives_wants_walker / "choice" // int / "item"
+        gives_wants_walker +
+        gives_wants_walker / "choice" // int
     )
     for iw in item_walker:
-        if not isinstance(iw.data, str):
+        # THE ITEM
+        iw_item_walker = iw / "item"
+        if not isinstance(iw_item_walker.data, str):
             continue
-        namespace, name, data_value = split_item_name(iw.data)
+        namespace, name, data_value = split_item_name(iw_item_walker.data)
         cursor.execute(
             '''
             INSERT INTO TradeTableItemField (
@@ -112,3 +130,30 @@ def load_trade_table(
             ''',
             (f'{namespace}:{name}', data_value, iw.path_str, trade_table_pk)
         )
+        item_pk = cursor.lastrowid
+        # THE SPAWN EGG
+        if name == 'spawn_egg':
+            functions_walker = iw / "functions" // int
+            for fw in functions_walker:
+                function_name = fw / "function"
+                if not (
+                        isinstance(function_name.data, str) and
+                        function_name.data == "set_actor_id"):
+                    continue
+                entity_identifier = fw / "id"
+                if not isinstance(entity_identifier.data, str):
+                    continue
+                cursor.execute(
+                    '''
+                    INSERT INTO TradeTableItemSpawnEggReferenceField (
+                        entityIdentifier, spawnEggIdentifier, jsonPath,
+                        TradeTableItemField_fk
+                    ) VALUES (?, ?, ?, ?)
+                    ''',
+                    (
+                        entity_identifier.data,
+                        entity_identifier.data + "_spawn_egg",
+                        fw.path_str,
+                        item_pk,
+                    )
+                )

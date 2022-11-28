@@ -1701,6 +1701,39 @@ class TradeTableItemField:
         return self.query_result()[3]
 
 
+class TradeTableItemSpawnEggReferenceField:
+    def __init__(self, db: Connection, id: int):
+        self.db: Connection = db
+        self.TradeTableItemSpawnEggReferenceField_pk: int = id
+
+    @cache
+    def query_result(self):
+        return self.db.execute(
+            '''
+            SELECT TradeTableItemField_fk, entityIdentifier, jsonPath, spawnEggIdentifier
+            FROM TradeTableItemSpawnEggReferenceField
+            WHERE TradeTableItemSpawnEggReferenceField_pk = ?
+            ''',
+            (self.TradeTableItemSpawnEggReferenceField_pk,)
+        ).fetchone()
+
+    @property
+    def TradeTableItemField_fk(self) -> int:
+        return self.query_result()[0]
+
+    @property
+    def entityIdentifier(self) -> str:
+        return self.query_result()[1]
+
+    @property
+    def jsonPath(self) -> str:
+        return self.query_result()[2]
+
+    @property
+    def spawnEggIdentifier(self) -> str:
+        return self.query_result()[3]
+
+
 class BpAnimationFile:
     def __init__(self, db: Connection, id: int):
         self.db: Connection = db
@@ -1945,6 +1978,7 @@ WRAPPER_CLASSES = {
     'TradeTableFile': TradeTableFile,
     'TradeTable': TradeTable,
     'TradeTableItemField': TradeTableItemField,
+    'TradeTableItemSpawnEggReferenceField': TradeTableItemSpawnEggReferenceField,
     'BpAnimationFile': BpAnimationFile,
     'BpAnimation': BpAnimation,
     'BpAnimationControllerFile': BpAnimationControllerFile,

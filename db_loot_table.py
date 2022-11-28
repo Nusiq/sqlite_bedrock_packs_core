@@ -192,7 +192,7 @@ def load_loot_table(
                                 entity_identifier.data,
                                 entity_identifier.data + "_spawn_egg",
                                 "set_actor_id_function",
-                                entity_identifier.path_str,
+                                fw.path_str,
                                 item_pk,
                             )
                         )

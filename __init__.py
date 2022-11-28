@@ -8,5 +8,5 @@ from .easy_query import (
     Left as Left,
 )
 
-VERSION = (2, 0, 0)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
+VERSION = (2, 1, 0)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
 __version__ = '.'.join([str(x) for x in VERSION])

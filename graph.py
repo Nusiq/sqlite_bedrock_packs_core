@@ -236,6 +236,20 @@ RELATION_MAP = {
             columns=(('TradeTable_fk', 'TradeTable_pk')),
             is_pk=True
         ),
+        "TradeTableItemSpawnEggReferenceField": _TableConnection(
+            columns=(('TradeTableItemField_pk', 'TradeTableItemField_fk')),
+            is_pk=True
+        ),
+    },
+    "TradeTableItemSpawnEggReferenceField": {
+        "EntitySpawnEggField": _TableConnection(
+            columns=(('spawnEggIdentifier', 'identifier')),
+            is_pk=False
+        ),
+        "TradeTableItemField": _TableConnection(
+            columns=(('TradeTableItemField_fk', 'TradeTableItemField_pk')),
+            is_pk=True
+        ),
     },
     "Particle": {
         "TextureFile": _TableConnection(
@@ -455,6 +469,10 @@ RELATION_MAP = {
     },
     "EntitySpawnEggField": {
         "LootTableItemSpawnEggReferenceField": _TableConnection(
+            columns=(('identifier', 'spawnEggIdentifier')),
+            is_pk=False
+        ),
+        "TradeTableItemSpawnEggReferenceField": _TableConnection(
             columns=(('identifier', 'spawnEggIdentifier')),
             is_pk=False
         ),
