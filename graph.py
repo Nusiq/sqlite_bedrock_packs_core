@@ -198,6 +198,24 @@ RELATION_MAP = {
             columns=(('LootTable_fk', 'LootTable_pk')),
             is_pk=True
         ),
+        "LootTableItemSpawnEggReferenceField": _TableConnection(
+            columns=(('LootTableItemField_pk', 'LootTableItemField_fk')),
+            is_pk=True
+        ),
+    },
+    "LootTableItemSpawnEggReferenceField": {
+        "EntitySpawnEggField": _TableConnection(
+            columns=(('spawnEggIdentifier', 'identifier')),
+            is_pk=False
+        ),
+        "LootTableItemSpawnEggReferenceFieldConnectinTypeEnum": _TableConnection(
+            columns=(('connectionType', 'value')),
+            is_pk=True
+        ),
+        "LootTableItemField": _TableConnection(
+            columns=(('LootTableItemField_fk', 'LootTableItemField_pk')),
+            is_pk=True
+        ),
     },
     "LootTableLootTableField": {
         "LootTable": _TableConnection(
@@ -249,6 +267,10 @@ RELATION_MAP = {
             is_pk=True
         ),
         "EntityLootField": _TableConnection(
+            columns=(('Entity_pk', 'Entity_fk')),
+            is_pk=True
+        ),
+        "EntitySpawnEggField": _TableConnection(
             columns=(('Entity_pk', 'Entity_fk')),
             is_pk=True
         ),
@@ -428,6 +450,16 @@ RELATION_MAP = {
         ),
         "TradeTableItemField": _TableConnection(
             columns=(('TradeTable_pk', 'TradeTable_fk')),
+            is_pk=True
+        ),
+    },
+    "EntitySpawnEggField": {
+        "LootTableItemSpawnEggReferenceField": _TableConnection(
+            columns=(('identifier', 'spawnEggIdentifier')),
+            is_pk=False
+        ),
+        "Entity": _TableConnection(
+            columns=(('Entity_fk', 'Entity_pk')),
             is_pk=True
         ),
     },
@@ -666,6 +698,12 @@ RELATION_MAP = {
         ),
         "BehaviorPack": _TableConnection(
             columns=(('BehaviorPack_fk', 'BehaviorPack_pk')),
+            is_pk=True
+        ),
+    },
+    "LootTableItemSpawnEggReferenceFieldConnectinTypeEnum": {
+        "LootTableItemSpawnEggReferenceField": _TableConnection(
+            columns=(('value', 'connectionType')),
             is_pk=True
         ),
     },

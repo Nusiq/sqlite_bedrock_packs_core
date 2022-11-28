@@ -1431,6 +1431,31 @@ class EntityTradeField:
         return self.query_result()[3]
 
 
+class EntitySpawnEggField:
+    def __init__(self, db: Connection, id: int):
+        self.db: Connection = db
+        self.EntitySpawnEggField_pk: int = id
+
+    @cache
+    def query_result(self):
+        return self.db.execute(
+            '''
+            SELECT Entity_fk, identifier
+            FROM EntitySpawnEggField
+            WHERE EntitySpawnEggField_pk = ?
+            ''',
+            (self.EntitySpawnEggField_pk,)
+        ).fetchone()
+
+    @property
+    def Entity_fk(self) -> int:
+        return self.query_result()[0]
+
+    @property
+    def identifier(self) -> str:
+        return self.query_result()[1]
+
+
 class LootTableFile:
     def __init__(self, db: Connection, id: int):
         self.db: Connection = db
@@ -1508,6 +1533,60 @@ class LootTableItemField:
     @property
     def jsonPath(self) -> str:
         return self.query_result()[2]
+
+
+class LootTableItemSpawnEggReferenceFieldConnectinTypeEnum:
+    def __init__(self, db: Connection, id: int):
+        self.db: Connection = db
+        self.value: int = id
+
+    @cache
+    def query_result(self):
+        return self.db.execute(
+            '''
+            SELECT 
+            FROM LootTableItemSpawnEggReferenceFieldConnectinTypeEnum
+            WHERE value = ?
+            ''',
+            (self.value,)
+        ).fetchone()
+
+
+class LootTableItemSpawnEggReferenceField:
+    def __init__(self, db: Connection, id: int):
+        self.db: Connection = db
+        self.LootTableItemSpawnEggReferenceField_pk: int = id
+
+    @cache
+    def query_result(self):
+        return self.db.execute(
+            '''
+            SELECT LootTableItemField_fk, connectionType, entityIdentifier, jsonPath, spawnEggIdentifier
+            FROM LootTableItemSpawnEggReferenceField
+            WHERE LootTableItemSpawnEggReferenceField_pk = ?
+            ''',
+            (self.LootTableItemSpawnEggReferenceField_pk,)
+        ).fetchone()
+
+    @property
+    def LootTableItemField_fk(self) -> int:
+        return self.query_result()[0]
+
+    @property
+    def connectionType(self) -> str:
+        return self.query_result()[1]
+
+    @property
+    def entityIdentifier(self) -> str:
+        return self.query_result()[2]
+
+    @property
+    def jsonPath(self) -> str:
+        return self.query_result()[3]
+
+    @property
+    def spawnEggIdentifier(self) -> str:
+        return self.query_result()[4]
 
 
 class LootTableLootTableField:
@@ -1856,9 +1935,12 @@ WRAPPER_CLASSES = {
     'EntityLootField': EntityLootField,
     'EntityTradeFieldComponentTypeEnum': EntityTradeFieldComponentTypeEnum,
     'EntityTradeField': EntityTradeField,
+    'EntitySpawnEggField': EntitySpawnEggField,
     'LootTableFile': LootTableFile,
     'LootTable': LootTable,
     'LootTableItemField': LootTableItemField,
+    'LootTableItemSpawnEggReferenceFieldConnectinTypeEnum': LootTableItemSpawnEggReferenceFieldConnectinTypeEnum,
+    'LootTableItemSpawnEggReferenceField': LootTableItemSpawnEggReferenceField,
     'LootTableLootTableField': LootTableLootTableField,
     'TradeTableFile': TradeTableFile,
     'TradeTable': TradeTable,

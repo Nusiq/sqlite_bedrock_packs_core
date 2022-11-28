@@ -79,6 +79,23 @@ CREATE TABLE EntityTradeField (
 );
 CREATE INDEX EntityTradeField_Entity_fk
 ON EntityTradeField (Entity_fk);
+
+CREATE TABLE EntitySpawnEggField (
+    -- Spawn eggs are added to the database based on entities that use the
+    -- is_spawnable property. The name of the spawn egg is based on the entity
+    -- identifier.
+
+    EntitySpawnEggField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+    Entity_fk INTEGER NOT NULL,
+
+    identifier TEXT NOT NULL,
+
+    FOREIGN KEY (Entity_fk) REFERENCES Entity (Entity_pk)
+        ON DELETE CASCADE
+);
+CREATE INDEX EntitySpawnEggField_Entity_fk
+ON EntitySpawnEggField (Entity_fk);
+
 '''
 
 def load_entities(db: Connection, bp_id: int):
@@ -107,8 +124,8 @@ def load_entity(db: Connection, entity_path: Path, bp_id: int):
     description = entity_walker / "description"
 
     # ENTITY - IDENTIFIER
-    identifier = (description / "identifier").data
-    if not isinstance(identifier, str):
+    entity_identifier = (description / "identifier").data
+    if not isinstance(entity_identifier, str):
         # Skip entitites without identifiers
         return
     cursor.execute(
@@ -117,7 +134,7 @@ def load_entity(db: Connection, entity_path: Path, bp_id: int):
         identifier, EntityFile_fk
         ) VALUES (?, ?)
         ''',
-        (identifier, file_pk))
+        (entity_identifier, file_pk))
     entity_pk = cursor.lastrowid
 
 
@@ -172,5 +189,20 @@ def load_entity(db: Connection, entity_path: Path, bp_id: int):
 
                 # minecraft:trade_table OR minecraft:economy_trade_table
                 trade_table_walker.parent.parent_key
+            )
+        )
+    # SPAWN EGG
+    spawn_egg_identifier = f'{entity_identifier}_spawn_egg'
+    spawnable = (description / "is_spawnable").data
+    if isinstance(spawnable, bool) and spawnable:
+        cursor.execute(
+            '''
+            INSERT INTO EntitySpawnEggField (
+            identifier, Entity_fk
+            ) VALUES (?, ?)
+            ''',
+            (
+                spawn_egg_identifier,
+                entity_pk
             )
         )
