@@ -5,6 +5,7 @@ from __future__ import annotations
 from functools import cache
 from sqlite3 import Connection
 from pathlib import Path
+from typing import Union
 
 class ResourcePack:
     def __init__(self, db: Connection, id: int):
@@ -44,7 +45,7 @@ class ClientEntityFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -98,7 +99,7 @@ class ClientEntityRenderControllerField:
         return self.query_result()[0]
 
     @property
-    def condition(self) -> str | None:
+    def condition(self) -> Union[str, None]:
         return self.query_result()[1]
 
     @property
@@ -292,7 +293,7 @@ class RenderControllerFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -350,7 +351,7 @@ class RenderControllerTexturesField:
         return self.query_result()[0]
 
     @property
-    def inOwnerArrayJsonPath(self) -> str | None:
+    def inOwnerArrayJsonPath(self) -> Union[str, None]:
         return self.query_result()[1]
 
     @property
@@ -358,7 +359,7 @@ class RenderControllerTexturesField:
         return self.query_result()[2]
 
     @property
-    def ownerArray(self) -> str | None:
+    def ownerArray(self) -> Union[str, None]:
         return self.query_result()[3]
 
     @property
@@ -387,11 +388,11 @@ class RenderControllerMaterialsField:
         return self.query_result()[0]
 
     @property
-    def boneNamePattern(self) -> str | None:
+    def boneNamePattern(self) -> Union[str, None]:
         return self.query_result()[1]
 
     @property
-    def inOwnerArrayJsonPath(self) -> str | None:
+    def inOwnerArrayJsonPath(self) -> Union[str, None]:
         return self.query_result()[2]
 
     @property
@@ -399,7 +400,7 @@ class RenderControllerMaterialsField:
         return self.query_result()[3]
 
     @property
-    def ownerArray(self) -> str | None:
+    def ownerArray(self) -> Union[str, None]:
         return self.query_result()[4]
 
     @property
@@ -428,7 +429,7 @@ class RenderControllerGeometryField:
         return self.query_result()[0]
 
     @property
-    def inOwnerArrayJsonPath(self) -> str | None:
+    def inOwnerArrayJsonPath(self) -> Union[str, None]:
         return self.query_result()[1]
 
     @property
@@ -436,7 +437,7 @@ class RenderControllerGeometryField:
         return self.query_result()[2]
 
     @property
-    def ownerArray(self) -> str | None:
+    def ownerArray(self) -> Union[str, None]:
         return self.query_result()[3]
 
     @property
@@ -461,7 +462,7 @@ class GeometryFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -498,7 +499,7 @@ class Geometry:
         return self.query_result()[2]
 
     @property
-    def parent(self) -> str | None:
+    def parent(self) -> Union[str, None]:
         return self.query_result()[3]
 
 
@@ -519,7 +520,7 @@ class TextureFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -548,7 +549,7 @@ class ParticleFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -581,11 +582,11 @@ class Particle:
         return self.query_result()[1]
 
     @property
-    def material(self) -> str | None:
+    def material(self) -> Union[str, None]:
         return self.query_result()[2]
 
     @property
-    def texture(self) -> str | None:
+    def texture(self) -> Union[str, None]:
         return self.query_result()[3]
 
 
@@ -606,7 +607,7 @@ class RpAnimationFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -718,7 +719,7 @@ class RpAnimationControllerFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -830,7 +831,7 @@ class AttachableFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -884,7 +885,7 @@ class AttachableItemField:
         return self.query_result()[0]
 
     @property
-    def condition(self) -> str | None:
+    def condition(self) -> Union[str, None]:
         return self.query_result()[1]
 
     @property
@@ -1016,7 +1017,7 @@ class AttachableRenderControllerField:
         return self.query_result()[0]
 
     @property
-    def condition(self) -> str | None:
+    def condition(self) -> Union[str, None]:
         return self.query_result()[1]
 
     @property
@@ -1111,7 +1112,7 @@ class SoundDefinitionsFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -1194,7 +1195,7 @@ class SoundFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -1223,7 +1224,7 @@ class RpItemFile:
         ).fetchone()
 
     @property
-    def ResourcePack_fk(self) -> int | None:
+    def ResourcePack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -1252,7 +1253,7 @@ class RpItem:
         return self.query_result()[0]
 
     @property
-    def icon(self) -> str | None:
+    def icon(self) -> Union[str, None]:
         return self.query_result()[1]
 
     @property
@@ -1298,7 +1299,7 @@ class EntityFile:
         ).fetchone()
 
     @property
-    def BehaviorPack_fk(self) -> int | None:
+    def BehaviorPack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -1473,7 +1474,7 @@ class LootTableFile:
         ).fetchone()
 
     @property
-    def BehaviorPack_fk(self) -> int | None:
+    def BehaviorPack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -1635,7 +1636,7 @@ class TradeTableFile:
         ).fetchone()
 
     @property
-    def BehaviorPack_fk(self) -> int | None:
+    def BehaviorPack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -1689,7 +1690,7 @@ class TradeTableItemField:
         return self.query_result()[0]
 
     @property
-    def dataValue(self) -> int | None:
+    def dataValue(self) -> Union[int, None]:
         return self.query_result()[1]
 
     @property
@@ -1751,7 +1752,7 @@ class BpAnimationFile:
         ).fetchone()
 
     @property
-    def BehaviorPack_fk(self) -> int | None:
+    def BehaviorPack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -1805,7 +1806,7 @@ class BpAnimationControllerFile:
         ).fetchone()
 
     @property
-    def BehaviorPack_fk(self) -> int | None:
+    def BehaviorPack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -1859,7 +1860,7 @@ class BpItemFile:
         ).fetchone()
 
     @property
-    def BehaviorPack_fk(self) -> int | None:
+    def BehaviorPack_fk(self) -> Union[int, None]:
         return self.query_result()[0]
 
     @property
@@ -1913,7 +1914,7 @@ class BpItem:
         return self.query_result()[2]
 
     @property
-    def texture(self) -> str | None:
+    def texture(self) -> Union[str, None]:
         return self.query_result()[3]
 
 

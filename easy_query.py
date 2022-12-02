@@ -1,6 +1,6 @@
 from __future__ import annotations
 from sqlite3 import Connection, Cursor
-from typing import Iterable, Iterator, NamedTuple, Any, TYPE_CHECKING
+from typing import Iterable, Iterator, NamedTuple, TYPE_CHECKING, Union, Optional
 from dataclasses import dataclass
 from collections import deque
 if TYPE_CHECKING:
@@ -35,13 +35,14 @@ class EasyQuery:
 
     @staticmethod
     def build(
-            db: Connection | Database | None, root: str, *tables: str | Left,
+            db: Union[Connection, Database, None], root: str,
+            *tables: Union[str, Left],
             blacklist: Iterable[str] = ("BehaviorPack", "ResourcePack"),
             accept_non_pk: bool = True, distinct: bool = True,
-            where: list[str] | None = None,
-            group_by: list[str] | None = None,
-            having: list[str] | None = None,
-            order_by: list[str] | None = None) -> EasyQuery:
+            where: Optional[list[str]] = None,
+            group_by: Optional[list[str]] = None,
+            having: Optional[list[str]] = None,
+            order_by: Optional[list[str]] = None) -> EasyQuery:
         '''
         Creates an instance of :class:`EasyQuery` from the given properties.
         This is a go-to method for creating an instance of :class:`EasyQuery`.
@@ -174,15 +175,15 @@ class _TableConnection:
 
 
 def _easy_query(
-        root: str, *tables: str | Left, blacklist: Iterable[str],
-        accept_non_pk: bool, distinct: bool, where: list[str] | None,
-        group_by: list[str] | None, having: list[str] | None,
-        order_by: list[str] | None) -> str:
+        root: str, *tables: Union[str, Left], blacklist: Iterable[str],
+        accept_non_pk: bool, distinct: bool, where: Optional[list[str]],
+        group_by: Optional[list[str]], having: Optional[list[str]],
+        order_by: Optional[list[str]]) -> str:
     '''
     A helper function that builds queries for :class:`EasyQuery` class.
     '''
     from .graph import RELATION_MAP
-    all_tables: list[str | Left] = [root, *tables]
+    all_tables: list[Union[str, Left]] = [root, *tables]
     for t in all_tables:
         t_val = t.value if isinstance(t, Left) else t
         if t_val not in RELATION_MAP.keys():

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from sqlite3 import Connection
 import sqlite3
-from typing import Literal
+from typing import Literal, Union
 from collections.abc import Container
 
 from .db_resource_pack import RESOURCE_PACK_BUILD_SCRIPT, load_resource_pack
@@ -140,7 +140,7 @@ class Database:
     '''The SQLite database conncetion.'''
 
     @staticmethod
-    def open(db_path: str | Path) -> Database:
+    def open(db_path: Union[str, Path]) -> Database:
         '''
         Creates a database using  path to the database file.
 
@@ -152,7 +152,7 @@ class Database:
         return Database(db)
 
     @staticmethod
-    def create(db_path: str | Path = ":memory:") -> Database:
+    def create(db_path: Union[str, Path] = ":memory:") -> Database:
         '''
         Creates a new database for storing resource packs and behavior packs in
         memory or in a file. The default value is :code:`":memory:"` which
