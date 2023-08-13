@@ -6,83 +6,79 @@ from typing import Literal, NamedTuple
 from copy import copy
 import json
 
+from .decorators import dbtableview
 from .better_json_tools import JSONWalker, load_jsonc
 from .utils import find_molang_resources
 
-RENDER_CONTROLLER_BUILD_SCRIPT = '''
--- Render controller
-CREATE TABLE RenderControllerFile (
-    RenderControllerFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class RenderControllerFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RenderControllerFile_ResourcePack_fk
-ON RenderControllerFile (ResourcePack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["RenderControllerFile"]
+)
+class RenderController: ...
 
-CREATE TABLE RenderController (
-    RenderController_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RenderControllerFile_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "ownerArray": (str, ""),
 
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
+        # Path to the item in the owner array
+        "inOwnerArrayJsonPath": (str, ""),
 
-    FOREIGN KEY (RenderControllerFile_fk) REFERENCES RenderControllerFile (RenderControllerFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RenderController_RenderControllerFile_fk
-ON RenderController (RenderControllerFile_fk);
+        "shortName": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["RenderController"]
+)
+class RenderControllerTexturesField: ...
 
-CREATE TABLE RenderControllerTexturesField (
-    RenderControllerTexturesField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RenderController_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "ownerArray": (str, ""),
 
-    ownerArray TEXT,
-    inOwnerArrayJsonPath TEXT, -- Path to the item in the owner array
-    shortName TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
+        # Path to the item in the owner array
+        "inOwnerArrayJsonPath": (str, ""),
 
-    FOREIGN KEY (RenderController_fk) REFERENCES RenderController (RenderController_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RenderControllerTexturesField_RenderController_fk
-ON RenderControllerTexturesField (RenderController_fk);
+        "shortName": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL"),
 
-CREATE TABLE RenderControllerMaterialsField (
-    RenderControllerMaterialsField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RenderController_fk INTEGER NOT NULL,
+        # The star pattern that matches the bone name
+        "boneNamePattern": (str, "")
+    },
+    connects_to=["RenderController"]
+)
+class RenderControllerMaterialsField: ...
 
-    ownerArray TEXT,
-    inOwnerArrayJsonPath TEXT, -- Path to the item in the owner array
-    shortName TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
+@dbtableview(
+    properties={
+        "ownerArray": (str, ""),
 
-    -- The star pattern that matches the bone name
-    boneNamePattern TEXT,
-    FOREIGN KEY (RenderController_fk) REFERENCES RenderController (RenderController_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RenderControllerMaterialsField_RenderController_fk
-ON RenderControllerMaterialsField (RenderController_fk);
+        # Path to the item in the owner array
+        "inOwnerArrayJsonPath": (str, ""),
 
-CREATE TABLE RenderControllerGeometryField (
-    RenderControllerGeometryField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RenderController_fk INTEGER NOT NULL,
+        "shortName": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["RenderController"]
+)
+class RenderControllerGeometryField: ...
 
-    ownerArray TEXT,
-    inOwnerArrayJsonPath TEXT, -- Path to the item in the owner array
-    shortName TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (RenderController_fk) REFERENCES RenderController (RenderController_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RenderControllerGeometryField_RenderController_fk
-ON RenderControllerGeometryField (RenderController_fk);
-'''
-
+RENDER_CONTROLLER_BUILD_SCRIPT = (
+    RenderControllerFile.build_script +
+    RenderController.build_script +
+    RenderControllerTexturesField.build_script +
+    RenderControllerMaterialsField.build_script +
+    RenderControllerGeometryField.build_script
+)
 
 def load_render_controllers(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

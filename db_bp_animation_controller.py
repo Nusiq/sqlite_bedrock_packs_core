@@ -2,35 +2,31 @@ from typing import cast
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
+from .decorators import dbtableview
 import json
 
-BP_ANIMATION_CONTROLLER_BUILD_SCRIPT = '''
--- BpAnimationController
-CREATE TABLE BpAnimationControllerFile (
-    BpAnimationControllerFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    BehaviorPack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["BehaviorPack"]
+)
+class BpAnimationControllerFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (BehaviorPack_fk) REFERENCES BehaviorPack (BehaviorPack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX BpAnimationControllerFile_BehaviorPack_fk
-ON BpAnimationControllerFile (BehaviorPack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["BpAnimationControllerFile"]
+)
+class BpAnimationController: ...
 
-CREATE TABLE BpAnimationController (
-    BpAnimationController_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    BpAnimationControllerFile_fk INTEGER NOT NULL,
 
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-    
-    FOREIGN KEY (BpAnimationControllerFile_fk) REFERENCES BpAnimationControllerFile (BpAnimationControllerFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX BpAnimationController_BpAnimationControllerFile_fk
-ON BpAnimationController (BpAnimationControllerFile_fk);
-
-'''
+BP_ANIMATION_CONTROLLER_BUILD_SCRIPT = (
+    BpAnimationControllerFile.build_script +
+    BpAnimationController.build_script
+)
 
 def load_bp_animation_controllers(db: Connection, bp_id: int):
     bp_path: Path = db.execute(

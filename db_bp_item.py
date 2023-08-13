@@ -3,51 +3,41 @@ from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
 from .utils import parse_format_version
+from .decorators import dbtableview
 import json
 
-BP_ITEM_BUILD_SCRIPT = '''
--- BpItem
-CREATE TABLE BpItemFile (
-    BpItemFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    BehaviorPack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["BehaviorPack"]
+)
+class BpItemFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (BehaviorPack_fk) REFERENCES BehaviorPack (BehaviorPack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX BpItemFile_BehaviorPack_fk
-ON BpItemFile (BehaviorPack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+
+        # The texture of the item. It only exists in 1.16.100+ items.
+        "texture": (str, ""),
+    },
+    enum_properties={
+        # The version of the parser. The value is based on fromat_version property
+        # of the file or matching schema (when format_version is missing).
+        # It divides the items into two groups 1.10 and 1.16.100. Most of the
+        # format_versions in Minecraft don't change the format so you need only
+        # two parsers to handle all the items.
+        "parserVersion": ["1.10", "1.16.100"]
+    },
+    connects_to=["BpItemFile"]
+)
+class BpItem: ...
 
 
-CREATE TABLE BpItemParserVersionEnum (
-    -- Emulates enum type. Stores possible value of BpItem.parserVersion
-    --- column.
-    value TEXT PRIMARY KEY
-);
-INSERT INTO BpItemParserVersionEnum (value) VALUES ('1.10'), ('1.16.100');
-
-CREATE TABLE BpItem (
-    BpItem_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    BpItemFile_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    -- The version of the parser. The value is based on fromat_version property
-    -- of the file or matching schema (when format_version is missing).
-    -- It divides the items into two groups 1.10 and 1.16.100. Most of the
-    -- format_versions in Minecraft don't change the format so you need only
-    -- two parsers to handle all the items.
-    parserVersion TEXT NOT NULL,
-    -- The texture of the item. It only exists in 1.16.100+ items.
-    texture TEXT,
-    
-    FOREIGN KEY (BpItemFile_fk) REFERENCES BpItemFile (BpItemFile_pk)
-        ON DELETE CASCADE
-    -- Constraint emulates enum
-    FOREIGN KEY (parserVersion) REFERENCES BpItemParserVersionEnum (value)
-);
-CREATE INDEX BpItem_BpItemFile_fk
-ON BpItem (BpItemFile_fk);
-'''
+BP_ITEM_BUILD_SCRIPT = (
+    BpItemFile.build_script +
+    BpItem.build_script
+)
 
 def load_bp_items(db: Connection, bp_id: int):
     bp_path: Path = db.execute(

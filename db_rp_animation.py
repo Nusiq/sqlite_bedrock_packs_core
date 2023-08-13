@@ -2,60 +2,50 @@ from typing import cast
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
+from .decorators import dbtableview
 import json
 
-RP_ANIMATION_BUILD_SCRIPT = '''
--- RpAnimation
-CREATE TABLE RpAnimationFile (
-    RpAnimationFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class RpAnimationFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RpAnimationFile_ResourcePack_fk
-ON RpAnimationFile (ResourcePack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["RpAnimationFile"]
+)
+class RpAnimation: ...
 
-CREATE TABLE RpAnimation (
-    RpAnimation_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RpAnimationFile_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["RpAnimation"]
+)
+class RpAnimationParticleEffect: ...
 
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-    
-    FOREIGN KEY (RpAnimationFile_fk) REFERENCES RpAnimationFile (RpAnimationFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RpAnimation_RpAnimationFile_fk
-ON RpAnimation (RpAnimationFile_fk);
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["RpAnimation"]
+)
+class RpAnimationSoundEffect: ...
 
-CREATE TABLE RpAnimationParticleEffect (
-    RpAnimationParticleEffect_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RpAnimation_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (RpAnimation_fk) REFERENCES RpAnimation (RpAnimation_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RpAnimationParticleEffect_RpAnimation_fk
-ON RpAnimationParticleEffect (RpAnimation_fk);
-
-CREATE TABLE RpAnimationSoundEffect (
-    RpAnimationSoundEffect_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RpAnimation_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (RpAnimation_fk) REFERENCES RpAnimation (RpAnimation_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RpAnimationSoundEffect_RpAnimation_fk
-ON RpAnimationSoundEffect (RpAnimation_fk);
-'''
+RP_ANIMATION_BUILD_SCRIPT = (
+    RpAnimationFile.build_script +
+    RpAnimation.build_script +
+    RpAnimationParticleEffect.build_script +
+    RpAnimationSoundEffect.build_script
+)
 
 def load_rp_animations(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

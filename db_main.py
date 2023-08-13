@@ -38,69 +38,14 @@ from .db_bp_animation_controller import (
 from .db_bp_item import (
     BP_ITEM_BUILD_SCRIPT, load_bp_items)
 
-SCRIPT = '''
-PRAGMA foreign_keys = ON;
-'''
-
+# SQLite3 converters/adapters
 def _path_adapter(path: Path):
     return path.as_posix()
 
 def _path_converter(path: bytes):
     return Path(path.decode('utf8'))
 
-
-def _create_db(db_path: str = ":memory:") -> Connection:
-    '''
-    Creates a new dtabase in :code:`db_path`. Runs all of the build scripts of
-    the database components.
-
-    :param db_path: The path to the database file. The argument is passed to
-        :func:`sqlite3.connect` If the argument is :code:`":memory:"`, the
-        database is created in memory. :code:`":memory:"` is the default value.
-    '''
-    sqlite3.register_adapter(Path, _path_adapter)
-    sqlite3.register_converter("Path", _path_converter)
-    db = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
-    db.row_factory = sqlite3.Row
-
-    db.executescript(SCRIPT)
-
-    db.executescript(RESOURCE_PACK_BUILD_SCRIPT)
-    db.executescript(CLIENT_ENTITY_BUILD_SCRIPT)
-    db.executescript(RENDER_CONTROLLER_BUILD_SCRIPT)
-    db.executescript(GEOMETRY_BUILD_SCRIPT)
-    db.executescript(TEXTURE_BUILD_SCRIPT)
-    db.executescript(PARTICLE_BUILD_SCRIPT)
-    db.executescript(RP_ANIMATION_BUILD_SCRIPT)
-    db.executescript(RP_ANIMATION_CONTROLLER_BUILD_SCRIPT)
-    db.executescript(ATTACHABLE_BUILD_SCRIPT)
-    db.executescript(SOUND_DEFINITIONS_BUILD_SCRIPT)
-    db.executescript(SOUND_BUILD_SCRIPT)
-    db.executescript(RP_ITEM_BUILD_SCRIPT)
-
-    db.executescript(BEHAVIOR_PACK_BUILD_SCRIPT)
-    db.executescript(ENTITY_BUILD_SCRIPT)
-    db.executescript(LOOT_TABLE_BUILD_SCRIPT)
-    db.executescript(TRADE_TABLE_BUILD_SCRIPT)
-    db.executescript(BP_ANIMATION_BUILD_SCRIPT)
-    db.executescript(BP_ANIMATION_CONTROLLER_BUILD_SCRIPT)
-    db.executescript(BP_ITEM_BUILD_SCRIPT)
-    return db
-
-def _open_db(db_path: str) -> Connection:
-    '''
-    Opens a database file. Usually these files are created by
-    :func:`create_db`. This function doesn't check if the database has a valid
-    structure. It assumes it does. This function only opens the database and
-    sets some sqlite3 adapter and converter functions for Path objects.
-
-    :param db_path: The path to the database file. The argument is passed to
-        :func:`sqlite3.connect`.
-    '''
-    sqlite3.register_adapter(Path, _path_adapter)
-    sqlite3.register_converter("Path", _path_converter)
-    return sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
-
+# Types for include/exclude arguments of loading RP/BP
 DbRpItems = Literal[
     "geometries",
     "client_entities",
@@ -114,10 +59,6 @@ DbRpItems = Literal[
     "sounds",
     "rp_items",
 ]
-'''
-Possible values of :code:`include and :code:`exclude` arguments of
-:func:`load_rp` function.
-'''
 
 DbBpItems = Literal[
     "entities",
@@ -128,8 +69,7 @@ DbBpItems = Literal[
     "bp_items"
 ]
 
-
-
+# The main database class
 @dataclass
 class Database:
     '''
@@ -143,12 +83,20 @@ class Database:
     def open(db_path: Union[str, Path]) -> Database:
         '''
         Creates a database using  path to the database file.
+        This function doesn't check if the database has a valid structure. It
+        assumes it does. This function only opens the database and
+        sets some sqlite3 adapter and converter functions for Path objects.
 
         :param db_path: the path to the database file
         '''
         if isinstance(db_path, Path):
             db_path = db_path.as_posix()
-        db = _open_db(db_path)
+
+
+        sqlite3.register_adapter(Path, _path_adapter)
+        sqlite3.register_converter("Path", _path_converter)
+        db = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+
         return Database(db)
 
     @staticmethod
@@ -160,7 +108,42 @@ class Database:
 
         :param db_path: The path to the database file or :code:`":memory:"`.
         '''
-        db = _create_db(db_path)
+        '''
+        Creates a new dtabase in :code:`db_path`. Runs all of the build scripts of
+        the database components.
+
+        :param db_path: The path to the database file. The argument is passed to
+            :func:`sqlite3.connect` If the argument is :code:`":memory:"`, the
+            database is created in memory. :code:`":memory:"` is the default value.
+        '''
+        sqlite3.register_adapter(Path, _path_adapter)
+        sqlite3.register_converter("Path", _path_converter)
+        db = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+        db.row_factory = sqlite3.Row
+
+        db.executescript("PRAGMA foreign_keys = ON;\n")
+
+        db.executescript(RESOURCE_PACK_BUILD_SCRIPT)
+        db.executescript(CLIENT_ENTITY_BUILD_SCRIPT)
+        db.executescript(RENDER_CONTROLLER_BUILD_SCRIPT)
+        db.executescript(GEOMETRY_BUILD_SCRIPT)
+        db.executescript(TEXTURE_BUILD_SCRIPT)
+        db.executescript(PARTICLE_BUILD_SCRIPT)
+        db.executescript(RP_ANIMATION_BUILD_SCRIPT)
+        db.executescript(RP_ANIMATION_CONTROLLER_BUILD_SCRIPT)
+        db.executescript(ATTACHABLE_BUILD_SCRIPT)
+        db.executescript(SOUND_DEFINITIONS_BUILD_SCRIPT)
+        db.executescript(SOUND_BUILD_SCRIPT)
+        db.executescript(RP_ITEM_BUILD_SCRIPT)
+
+        db.executescript(BEHAVIOR_PACK_BUILD_SCRIPT)
+        db.executescript(ENTITY_BUILD_SCRIPT)
+        db.executescript(LOOT_TABLE_BUILD_SCRIPT)
+        db.executescript(TRADE_TABLE_BUILD_SCRIPT)
+        db.executescript(BP_ANIMATION_BUILD_SCRIPT)
+        db.executescript(BP_ANIMATION_CONTROLLER_BUILD_SCRIPT)
+        db.executescript(BP_ITEM_BUILD_SCRIPT)
+
         return Database(db)
 
     def load_rp(

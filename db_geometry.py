@@ -2,35 +2,31 @@ from typing import cast, Optional
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
+from .decorators import dbtableview
 import json
 
-GEOMETRY_BUILD_SCRIPT = '''
--- Geometry
-CREATE TABLE GeometryFile (
-    GeometryFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class GeometryFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX GeometryFile_ResourcePack_fk
-ON GeometryFile (ResourcePack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "parent": (str, ""),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["GeometryFile"]
+)
+class Geometry: ...
 
-CREATE TABLE Geometry (
-    Geometry_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    GeometryFile_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    parent TEXT,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (GeometryFile_fk) REFERENCES GeometryFile (GeometryFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX Geometry_GeometryFile_fk
-ON Geometry (GeometryFile_fk);
-'''
+GEOMETRY_BUILD_SCRIPT = (
+    GeometryFile.build_script +
+    Geometry.build_script
+)
 
 def load_geometries(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

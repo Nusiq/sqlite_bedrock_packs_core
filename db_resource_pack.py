@@ -2,16 +2,16 @@ from sqlite3 import Connection
 from pathlib import Path
 from typing import Union
 
-RESOURCE_PACK_BUILD_SCRIPT = '''
--- Resource Pack
-CREATE TABLE ResourcePack (
-    ResourcePack_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+from .decorators import dbtableview
 
-    path Path NOT NULL
-);
-CREATE INDEX ResourcePack_path
-ON ResourcePack (path);
-'''
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    }
+)
+class ResourcePack: ...
+
+RESOURCE_PACK_BUILD_SCRIPT = ResourcePack.build_script
 
 def load_resource_pack(db: Connection, rp_path: Union[Path, str]) -> int:
     if isinstance(rp_path, Path):

@@ -1,34 +1,34 @@
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
+from .decorators import dbtableview
 import json
 
-PARTICLE_BUILD_SCRIPT = '''
--- Particle
-CREATE TABLE ParticleFile (
-    ParticleFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class ParticleFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX ParticleFile_ResourcePack_fk
-ON ParticleFile (ResourcePack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "material": (str, ""),
+        "texture": (str, "")
+    },
+    connects_to=["ParticleFile"],
+    weak_connects_to=[
+        ("texture", "TextureFile", "identifier")
+    ]
+)
+class Particle: ...
 
-CREATE TABLE Particle (
-    Particle_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ParticleFile_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    material TEXT,
-    texture TEXT,
-    FOREIGN KEY (ParticleFile_fk) REFERENCES ParticleFile (ParticleFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX Particle_ParticleFile_fk
-ON Particle (ParticleFile_fk);
-'''
+PARTICLE_BUILD_SCRIPT = (
+    ParticleFile.build_script +
+    Particle.build_script
+)
 
 def load_particles(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

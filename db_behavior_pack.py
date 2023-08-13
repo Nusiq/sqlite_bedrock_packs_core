@@ -1,17 +1,17 @@
 from sqlite3 import Connection
 from pathlib import Path
 from typing import Union
+from .decorators import dbtableview
 
-BEHAVIOR_PACK_BUILD_SCRIPT = '''
--- Behavior Pack
-CREATE TABLE BehaviorPack (
-    BehaviorPack_pk INTEGER PRIMARY KEY AUTOINCREMENT,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    }
+)
+class BehaviorPack: ...
 
-    path Path NOT NULL
-);
-CREATE INDEX BehaviorPack_path
-ON BehaviorPack (path);
-'''
+
+BEHAVIOR_PACK_BUILD_SCRIPT = BehaviorPack.build_script
 
 def load_behavior_pack(db: Connection, rp_path: Union[Path, str]) -> int:
     if isinstance(rp_path, Path):

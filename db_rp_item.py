@@ -3,35 +3,30 @@ from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
 from .utils import parse_format_version
+from .decorators import dbtableview
 import json
 
-RP_ITEM_BUILD_SCRIPT = '''
--- RpItem
-CREATE TABLE RpItemFile (
-    RpItemFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class RpItemFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RpItemFile_ResourcePack_fk
-ON RpItemFile (ResourcePack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "icon": (str, "")
+    },
+    connects_to=["RpItemFile"]
+)
+class RpItem: ...
 
-
-CREATE TABLE RpItem (
-    RpItem_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RpItemFile_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    icon TEXT,
-    
-    FOREIGN KEY (RpItemFile_fk) REFERENCES RpItemFile (RpItemFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RpItem_RpItemFile_fk
-ON RpItem (RpItemFile_fk);
-'''
+RP_ITEM_BUILD_SCRIPT = (
+    RpItemFile.build_script +
+    RpItem.build_script
+)
 
 def load_rp_items(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

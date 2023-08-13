@@ -2,60 +2,50 @@ from typing import cast
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
+from .decorators import dbtableview
 import json
 
-RP_ANIMATION_CONTROLLER_BUILD_SCRIPT = '''
--- RpAnimationController
-CREATE TABLE RpAnimationControllerFile (
-    RpAnimationControllerFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class RpAnimationControllerFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RpAnimationControllerFile_ResourcePack_fk
-ON RpAnimationControllerFile (ResourcePack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["RpAnimationControllerFile"]
+)
+class RpAnimationController: ...
 
-CREATE TABLE RpAnimationController (
-    RpAnimationController_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RpAnimationControllerFile_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["RpAnimationController"]
+)
+class RpAnimationControllerParticleEffect: ...
 
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-    
-    FOREIGN KEY (RpAnimationControllerFile_fk) REFERENCES RpAnimationControllerFile (RpAnimationControllerFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RpAnimationController_RpAnimationControllerFile_fk
-ON RpAnimationController (RpAnimationControllerFile_fk);
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["RpAnimationController"]
+)
+class RpAnimationControllerSoundEffect: ...
 
-CREATE TABLE RpAnimationControllerParticleEffect (
-    RpAnimationControllerParticleEffect_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RpAnimationController_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (RpAnimationController_fk) REFERENCES RpAnimationController (RpAnimationController_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RpAnimationControllerParticleEffect_RpAnimationController_fk
-ON RpAnimationControllerParticleEffect (RpAnimationController_fk);
-
-CREATE TABLE RpAnimationControllerSoundEffect (
-    RpAnimationControllerSoundEffect_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    RpAnimationController_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (RpAnimationController_fk) REFERENCES RpAnimationController (RpAnimationController_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX RpAnimationControllerSoundEffect_RpAnimationController_fk
-ON RpAnimationControllerSoundEffect (RpAnimationController_fk);
-'''
+RP_ANIMATION_CONTROLLER_BUILD_SCRIPT = (
+    RpAnimationControllerFile.build_script +
+    RpAnimationController.build_script +
+    RpAnimationControllerParticleEffect.build_script +
+    RpAnimationControllerSoundEffect.build_script
+)
 
 def load_rp_animation_controllers(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

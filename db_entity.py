@@ -1,102 +1,75 @@
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
+from .decorators import dbtableview
 import json
 
-ENTITY_BUILD_SCRIPT = '''
--- Behavior pack entity file & content
-CREATE TABLE EntityFile (
-    EntityFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    BehaviorPack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["BehaviorPack"]
+)
+class EntityFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (BehaviorPack_fk) REFERENCES BehaviorPack (BehaviorPack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX EntityFile_BehaviorPack_fk
-ON EntityFile (BehaviorPack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+    },
+    connects_to=["EntityFile"]
+)
+class Entity: ...
 
-CREATE TABLE Entity (
-    Entity_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    EntityFile_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL"),
+    },
+    enum_properties={
+        "componentType": ["minecraft:loot", "minecraft:equipment"]
+    },
+    connects_to=["Entity"],
+    weak_connects_to=[
+        ("identifier", "LootTable", "identifier")
+    ]
+)
+class EntityLootField: ...
 
-    identifier TEXT NOT NULL,
-    FOREIGN KEY (EntityFile_fk) REFERENCES EntityFile (EntityFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX Entity_EntityFile_fk
-ON Entity (EntityFile_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL"),
+    },
+    enum_properties={
+        "componentType": ["minecraft:economy_trade_table", "minecraft:trade_table"]
+    },
+    connects_to=["Entity"],
+    weak_connects_to=[
+        ("identifier", "TradeTable", "identifier")
+    ]
+)
+class EntityTradeField: ...
 
-CREATE TABLE EntityLootFieldComponentTypeEnum (
-    -- This table is used to store possible values for the 
-    -- EntityLootField.componentType column. Stores the names of the
-    -- components that can have a loot table reference (like 
-    -- "minecraft:loot" or "minecraft:equipment")
-    value TEXT PRIMARY KEY
-);
-INSERT INTO EntityLootFieldComponentTypeEnum (value)
-VALUES ("minecraft:loot"), ("minecraft:equipment");
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+    },
+    connects_to=["Entity"]
+)
+class EntitySpawnEggField:
+    '''
+    Spawn eggs are added to the database based on entities that use the
+    is_spawnable property. The name of the spawn egg is based on the entity
+    identifier.
+    '''
 
-
-CREATE TABLE EntityLootField (
-    EntityLootField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    Entity_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-    componentType TEXT NOT NULL,
-
-    FOREIGN KEY (Entity_fk) REFERENCES Entity (Entity_pk)
-        ON DELETE CASCADE
-    -- Constraint emulates enum
-    FOREIGN KEY (componentType) REFERENCES EntityLootFieldComponentTypeEnum (value)
-);
-CREATE INDEX EntityLootField_Entity_fk
-ON EntityLootField (Entity_fk);
-
-CREATE TABLE EntityTradeFieldComponentTypeEnum (
-    -- This table is used to store possible values for the
-    -- EntityTradeField.componentType column. Stores the names of the
-    -- components that can have a trade table reference (like
-    -- "minecraft:economy_trade_table" or "minecraft:trade_table")
-    value TEXT PRIMARY KEY
-);
-INSERT INTO EntityTradeFieldComponentTypeEnum (value)
-VALUES ("minecraft:economy_trade_table"), ("minecraft:trade_table");
-
-CREATE TABLE EntityTradeField (
-    EntityTradeField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    Entity_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-    componentType TEXT NOT NULL,
-
-    FOREIGN KEY (Entity_fk) REFERENCES Entity (Entity_pk)
-        ON DELETE CASCADE
-    -- Constraint emulates enum
-    FOREIGN KEY (componentType) REFERENCES EntityTradeFieldComponentTypeEnum (value)
-);
-CREATE INDEX EntityTradeField_Entity_fk
-ON EntityTradeField (Entity_fk);
-
-CREATE TABLE EntitySpawnEggField (
-    -- Spawn eggs are added to the database based on entities that use the
-    -- is_spawnable property. The name of the spawn egg is based on the entity
-    -- identifier.
-
-    EntitySpawnEggField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    Entity_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-
-    FOREIGN KEY (Entity_fk) REFERENCES Entity (Entity_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX EntitySpawnEggField_Entity_fk
-ON EntitySpawnEggField (Entity_fk);
-
-'''
+ENTITY_BUILD_SCRIPT = (
+    EntityFile.build_script +
+    Entity.build_script +
+    EntityLootField.build_script +
+    EntityTradeField.build_script +
+    EntitySpawnEggField.build_script
+)
 
 def load_entities(db: Connection, bp_id: int):
     bp_path: Path = db.execute(

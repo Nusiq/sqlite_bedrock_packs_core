@@ -2,98 +2,82 @@ from typing import cast, Optional
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
+from .decorators import dbtableview
 import json
 
-LOOT_TABLE_BUILD_SCRIPT = '''
--- Loot Table
-CREATE TABLE LootTableFile (
-    LootTableFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    BehaviorPack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["BehaviorPack"]
+)
+class LootTableFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (BehaviorPack_fk) REFERENCES BehaviorPack (BehaviorPack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX LootTableFile_BehaviorPack_fk
-ON LootTableFile (BehaviorPack_fk);
+@dbtableview(
+    properties={
+        # Identifier of the loot table(path to the file relative to the behavior
+        # pack root). Unike some other path based identifiers, this one includes
+        # the file extension.
+        "identifier": (str, "NOT NULL"),
+    },
+    connects_to=["LootTableFile"]
+)
+class LootTable: ...
 
-CREATE TABLE LootTable (
-    LootTable_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    LootTableFile_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["LootTable"],
+    weak_connects_to=[
+        ("identifier", "RpItem", "identifier"),
+        ("identifier", "BpItem", "identifier")
+    ]
+)
+class LootTableItemField: ...
 
-    -- Identifier of the loot table (path to the file relative to the behavior
-    -- pack root). Unike some other path based identifiers, this one includes
-    -- the file extension.
-    identifier TEXT NOT NULL,
+@dbtableview(
+    properties={
+        "entityIdentifier": (str, "NOT NULL"),
+        "spawnEggIdentifier": (str, "NOT NULL"),
 
-    FOREIGN KEY (LootTableFile_fk) REFERENCES LootTableFile (LootTableFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX LootTable_LootTableFile_fk
-ON LootTable (LootTableFile_fk);
+        # If connectionType is direct, it points at the identifier
+        "jsonPath": (str, "NOT NULL")
+    },
+    enum_properties={
+        # This table is used to store possible values for the
+        # LootTableItemSpawnEggReferenceField.connectionType column.
+        # Stores the type of connection, it can be either "direct" or
+        # "set_actor_id_function".
+        "connectionType": ["direct", "set_actor_id_function"]
+    },
+    connects_to=["LootTableItemField"],
+    weak_connects_to=[
+        ("spawnEggIdentifier", "EntitySpawnEggField", "identifier")
+    ]
+)
+class LootTableItemSpawnEggReferenceField: ...
 
-CREATE TABLE LootTableItemField (
-    -- A reference to an item inside a loot table.
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["LootTable"],
+    weak_connects_to=[
+        ("identifier", "LootTable", "identifier")
+    ]
+)
+class LootTableLootTableField: ...
 
-    LootTableItemField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    LootTable_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (LootTable_fk) REFERENCES LootTable (LootTable_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX LootTableItemField_LootTable_fk
-ON LootTableItemField (LootTable_fk);
-
-CREATE TABLE LootTableItemSpawnEggReferenceFieldConnectinTypeEnum (
-    -- This table is used to store possible values for the
-    -- LootTableItemSpawnEggReferenceField.connectionType column.
-    -- Stores the type of connection, it can be either "direct" or
-    -- "set_actor_id_function".
-    value TEXT PRIMARY KEY
-);
-INSERT INTO LootTableItemSpawnEggReferenceFieldConnectinTypeEnum (value)
-VALUES ("direct"), ("set_actor_id_function");
-
-CREATE TABLE LootTableItemSpawnEggReferenceField (
-    -- A reference to a spawn egg inside an item inside a loot table.
-
-    LootTableItemSpawnEggReferenceField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    LootTableItemField_fk INTEGER NOT NULL,
-
-    entityIdentifier TEXT NOT NULL,
-    spawnEggIdentifier TEXT NOT NULL,
-    connectionType TEXT NOT NULL,
-
-    -- If connectionType is direct, it points at the identifier
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (LootTableItemField_fk) REFERENCES LootTableItemField (LootTableItemField_pk)
-        ON DELETE CASCADE
-    -- Constraint emulates enum
-    FOREIGN KEY (connectionType) REFERENCES
-        LootTableItemSpawnEggReferenceFieldConnectinTypeEnum (value)
-);
-CREATE INDEX LootTableItemSpawnEggReferenceField_LootTableItemField_fk
-ON LootTableItemSpawnEggReferenceField (LootTableItemField_fk);
-
-CREATE TABLE LootTableLootTableField (
-    -- A reference to an loot table inside another loot table.
-
-    LootTableLootTableField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    LootTable_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (LootTable_fk) REFERENCES LootTable (LootTable_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX LootTableLootTableField_LootTable_fk
-ON LootTableLootTableField (LootTable_fk);
-'''
+LOOT_TABLE_BUILD_SCRIPT = (
+    LootTableFile.build_script +
+    LootTable.build_script +
+    LootTableItemField.build_script +
+    LootTableItemSpawnEggReferenceField.build_script +
+    LootTableLootTableField.build_script
+)
 
 def load_loot_tables(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

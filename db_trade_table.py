@@ -3,68 +3,61 @@ from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
 from .utils import split_item_name
+from .decorators import dbtableview
 import json
 
-TRADE_TABLE_BUILD_SCRIPT = '''
--- Trade Table
-CREATE TABLE TradeTableFile (
-    TradeTableFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    BehaviorPack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["BehaviorPack"]
+)
+class TradeTableFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (BehaviorPack_fk) REFERENCES BehaviorPack (BehaviorPack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX TradeTableFile_BehaviorPack_fk
-ON TradeTableFile (BehaviorPack_fk);
+@dbtableview(
+    properties={
+        # Identifier of the trade table(path to the file relative to the behavior
+        # pack root). Unike some other path based identifiers, this one includes
+        # the file extension.
+        "identifier": (str, "NOT NULL"),
+    },
+    connects_to=["TradeTableFile"]
+)
+class TradeTable: ...
 
-CREATE TABLE TradeTable (
-    TradeTable_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    TradeTableFile_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "dataValue": (int, ""),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["TradeTable"],
+    weak_connects_to=[
+        ("identifier", "RpItem", "identifier"),
+        ("identifier", "BpItem", "identifier")
+    ]
+)
+class TradeTableItemField: ...
 
-    -- Identifier of the trade table (path to the file relative to the behavior
-    -- pack root). Unike some other path based identifiers, this one includes
-    -- the file extension.
-    identifier TEXT NOT NULL,
+@dbtableview(
+    properties={
+        "entityIdentifier": (str, "NOT NULL"),
+        "spawnEggIdentifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["TradeTableItemField"],
+    weak_connects_to=[
+        ("spawnEggIdentifier", "EntitySpawnEggField", "identifier")
+    ]
+)
+class TradeTableItemSpawnEggReferenceField: ...
 
-    FOREIGN KEY (TradeTableFile_fk) REFERENCES TradeTableFile (TradeTableFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX TradeTable_TradeTableFile_fk
-ON TradeTable (TradeTableFile_fk);
-
-CREATE TABLE TradeTableItemField (
-    -- A reference to an item inside a trade table.
-
-    TradeTableItemField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    TradeTable_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    dataValue INTEGER,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (TradeTable_fk) REFERENCES TradeTable (TradeTable_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX TradeTableItemField_TradeTable_fk
-ON TradeTableItemField (TradeTable_fk);
-
-CREATE TABLE TradeTableItemSpawnEggReferenceField (
-    -- A reference to a spawn egg inside an item inside a trade table.
-
-    TradeTableItemSpawnEggReferenceField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    TradeTableItemField_fk INTEGER NOT NULL,
-
-    entityIdentifier TEXT NOT NULL,
-    spawnEggIdentifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (TradeTableItemField_fk) REFERENCES TradeTableItemField (TradeTableItemField_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX TradeTableItemSpawnEggReferenceField_TradeTableItemField_fk
-ON TradeTableItemSpawnEggReferenceField (TradeTableItemField_fk);
-'''
+TRADE_TABLE_BUILD_SCRIPT = (
+    TradeTableFile.build_script +
+    TradeTable.build_script +
+    TradeTableItemField.build_script +
+    TradeTableItemSpawnEggReferenceField.build_script
+)
 
 def load_trade_tables(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

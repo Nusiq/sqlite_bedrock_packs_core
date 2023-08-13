@@ -1,137 +1,133 @@
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
+from .decorators import dbtableview
 import json
 
-ATTACHABLE_BUILD_SCRIPT = '''
--- Attachable
-CREATE TABLE AttachableFile (
-    AttachableFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
 
-    path Path NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX AttachableFile_ResourcePack_fk
-ON AttachableFile (ResourcePack_fk);
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class AttachableFile: ...
 
-CREATE TABLE Attachable (
-    Attachable_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    AttachableFile_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL")
+    },
+    connects_to=["AttachableFile"]
+)
+class Attachable: ...
 
-    identifier TEXT NOT NULL,
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "condition": (str, ""),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["Attachable"],
+    weak_connects_to=[
+        ("identifier", "RpItem", "identifier"),
+        ("identifier", "BpItem", "identifier")
+    ]
+)
+class AttachableItemField:
+    '''
+    This maps the item used by the attachable. Attachables have two types of
+    connecting items. They can either have an identifier matching to the item
+    or they can have the 'item' property which maps the item with a condition.
+    In both cases this field is added to the database.
+    '''
 
-    FOREIGN KEY (AttachableFile_fk) REFERENCES AttachableFile (AttachableFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX Attachable_AttachableFile_fk
-ON Attachable (AttachableFile_fk);
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["Attachable"]
+)
+class AttachableMaterialField: ...
 
--- This maps the item used by the attachable. Attachables have two types of
--- connecting items. They can either have an identifier matching to the item
--- or they can have the 'item' property which maps the item with a condition.
--- In both cases this field is added to the database.
-CREATE TABLE AttachableItemField (
-    AttachableItemField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    Attachable_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["Attachable"],
+    weak_connects_to=[
+        ("identifier", "TextureFile", "identifier")
+    ]
+)
+class AttachableTextureField: ...
 
-    identifier TEXT NOT NULL,
-    condition TEXT,
-    jsonPath TEXT NOT NULL,
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["Attachable"],
+    weak_connects_to=[
+        ("identifier", "Geometry", "identifier")
+    ]
+)
+class AttachableGeometryField: ...
 
-    FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX AttachableItemField_Attachable_fk
-ON AttachableItemField (Attachable_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "condition": (str, ""),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["Attachable"],
+    weak_connects_to=[
+        ("identifier", "RenderController", "identifier")
+    ]
+)
+class AttachableRenderControllerField: ...
 
-CREATE TABLE AttachableMaterialField (
-    AttachableMaterialField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    Attachable_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["Attachable"],
+    weak_connects_to=[
+        ("identifier", "RpAnimation", "identifier")
+    ]
+)
+class AttachableAnimationField: ...
 
-    shortName TEXT NOT NULL,
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX AttachableMaterialField_Attachable_fk
-ON AttachableMaterialField (Attachable_fk);
-
-CREATE TABLE AttachableTextureField (
-    AttachableTextureField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    Attachable_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX AttachableTextureField_Attachable_fk
-ON AttachableTextureField (Attachable_fk);
-
-CREATE TABLE AttachableGeometryField (
-    AttachableGeometryField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    Attachable_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX AttachableGeometryField_Attachable_fk
-ON AttachableGeometryField (Attachable_fk);
-
-
-CREATE TABLE AttachableRenderControllerField (
-    AttachableRenderControllerField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    Attachable_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    condition TEXT,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX AttachableRenderControllerField_Attachable_fk
-ON AttachableRenderControllerField (Attachable_fk);
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["Attachable"],
+    weak_connects_to=[
+        ("identifier", "RpAnimationController", "identifier")
+    ]
+)
+class AttachableAnimationControllerField: ...
 
 
-CREATE TABLE AttachableAnimationField (
-    AttachableAnimationField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    Attachable_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX AttachableAnimationField_Attachable_fk
-ON AttachableAnimationField (Attachable_fk);
-
-CREATE TABLE AttachableAnimationControllerField (
-    AttachableAnimationControllerField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    Attachable_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (Attachable_fk) REFERENCES Attachable (Attachable_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX AttachableAnimationControllerField_Attachable_fk
-ON AttachableAnimationControllerField (Attachable_fk);
-'''
+ATTACHABLE_BUILD_SCRIPT = (
+    AttachableFile.build_script +
+    Attachable.build_script +
+    AttachableItemField.build_script +
+    AttachableMaterialField.build_script +
+    AttachableTextureField.build_script +
+    AttachableGeometryField.build_script +
+    AttachableRenderControllerField.build_script +
+    AttachableAnimationField.build_script +
+    AttachableAnimationControllerField.build_script
+)
 
 def load_attachables(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

@@ -2,48 +2,43 @@ from typing import cast, Optional
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
+from .decorators import dbtableview
 import json
 
-SOUND_DEFINITIONS_BUILD_SCRIPT = '''
--- Sound definitions file
-CREATE TABLE SoundDefinitionsFile (
-    SoundDefinitionsFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class SoundDefinitionsFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX SoundDefinitionsFile_ResourcePack_fk
-ON SoundDefinitionsFile (ResourcePack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["SoundDefinitionsFile"]
+)
+class SoundDefinition: ...
 
-CREATE TABLE SoundDefinition (
-    SoundDefinition_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    SoundDefinitionsFile_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["SoundDefinition"],
+    weak_connects_to=[
+        ("identifier", "SoundFile", "identifier")
+    ]
+)
+class SoundDefinitionSoundField: ...
 
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (SoundDefinitionsFile_fk) REFERENCES SoundDefinitionsFile (SoundDefinitionsFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX SoundDefinition_SoundDefinitionsFile_fk
-ON SoundDefinition (SoundDefinitionsFile_fk);
-
-CREATE TABLE SoundDefinitionSoundField (
-    SoundDefinitionSoundField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    SoundDefinition_fk INTEGER NOT NULL,
-
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (SoundDefinition_fk) REFERENCES SoundDefinition (SoundDefinition_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX SoundDefinitionSoundField_SoundDefinition_fk
-ON SoundDefinitionSoundField (SoundDefinition_fk);
-'''
-
+SOUND_DEFINITIONS_BUILD_SCRIPT = (
+    SoundDefinitionsFile.build_script +
+    SoundDefinition.build_script +
+    SoundDefinitionSoundField.build_script
+)
 
 def load_sound_definitions(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

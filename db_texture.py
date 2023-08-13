@@ -1,23 +1,20 @@
 from sqlite3 import Connection
 from pathlib import Path
+from .decorators import dbtableview
 
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL"),
 
-TEXTURE_BUILD_SCRIPT = '''
--- Texture
-CREATE TABLE TextureFile (
-    TextureFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
+        # The identifier is the path without extension. This is added to the DB to
+        # make searches easier.
+        "identifier": (str, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class TextureFile: ...
 
-    path Path NOT NULL,
-    -- The identifier is the path without extension. This is added to the DB to
-    -- make searches easier.
-    identifier TEXT NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX TextureFile_ResourcePack_fk
-ON TextureFile (ResourcePack_fk);
-'''
+TEXTURE_BUILD_SCRIPT = TextureFile.build_script
 
 def load_textures(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

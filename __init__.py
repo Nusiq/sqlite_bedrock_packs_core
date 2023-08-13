@@ -7,6 +7,10 @@ from .easy_query import (
     EasyQuery as EasyQuery,
     Left as Left,
 )
+from .decorators import validate_weak_connections, add_reverse_connections
 
 VERSION = (2, 1, 1)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
 __version__ = '.'.join([str(x) for x in VERSION])
+
+assert validate_weak_connections()
+add_reverse_connections()

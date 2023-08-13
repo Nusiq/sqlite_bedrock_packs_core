@@ -38,7 +38,8 @@ class EasyQuery:
             db: Union[Connection, Database, None], root: str,
             *tables: Union[str, Left],
             blacklist: Iterable[str] = ("BehaviorPack", "ResourcePack"),
-            accept_non_pk: bool = True, distinct: bool = True,
+            accept_non_pk: bool = True,
+            distinct: bool = True,
             where: Optional[list[str]] = None,
             group_by: Optional[list[str]] = None,
             having: Optional[list[str]] = None,
@@ -153,7 +154,7 @@ class EasyQuery:
         the query. If the query is using LEFT join, the wrapper class will be
         None if the row doesn't have a value.
         '''
-        from .wrappers import WRAPPER_CLASSES
+        from .decorators import WRAPPER_CLASSES
         cursor = self.run()
         wrappers = [
             WRAPPER_CLASSES[d[0]] for d in cursor.description
@@ -166,7 +167,7 @@ class EasyQuery:
 
 
 @dataclass
-class _TableConnection:
+class _EasyQueryConnection:
     left: str
     left_column: str
     right: str
@@ -182,7 +183,7 @@ def _easy_query(
     '''
     A helper function that builds queries for :class:`EasyQuery` class.
     '''
-    from .graph import RELATION_MAP
+    from .decorators import RELATION_MAP
     all_tables: list[Union[str, Left]] = [root, *tables]
     for t in all_tables:
         t_val = t.value if isinstance(t, Left) else t
@@ -190,7 +191,7 @@ def _easy_query(
             raise ValueError(
                 f"Table '{t_val}' does not exist in the database.")
     prev_t = None
-    joined_connections: list[_TableConnection] = []
+    joined_connections: list[_EasyQueryConnection] = []
     blacklist = list(blacklist)
     for t in all_tables:
         if prev_t is None:
@@ -264,8 +265,8 @@ def _find_connection(
     :param accept_non_pk: Whether to accept non-primary key relations.
     :param visited: A list of tables to ignore while searching.
     '''
-    from .graph import RELATION_MAP
-    queue: deque[tuple[str, list[_TableConnection]]] = deque([(start, [])])
+    from .decorators import RELATION_MAP
+    queue: deque[tuple[str, list[_EasyQueryConnection]]] = deque([(start, [])])
     while len(queue) > 0:
         # Pop the first element (shortest path visited)
         node, path = queue.popleft()
@@ -282,7 +283,7 @@ def _find_connection(
             if not accept_non_pk and not relation.is_pk:
                 continue
             queue.append((child, path + [
-                _TableConnection(
+                _EasyQueryConnection(
                     left=node,
                     left_column=relation.columns[0],
                     right=child,

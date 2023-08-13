@@ -2,118 +2,115 @@ from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
 import json
+from .decorators import dbtableview
 
-CLIENT_ENTITY_BUILD_SCRIPT = '''
--- Resource pack entity file & content
-CREATE TABLE ClientEntityFile (
-    ClientEntityFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class ClientEntityFile: ...
 
-    path Path NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX ClientEntityFile_ResourcePack_fk
-ON ClientEntityFile (ResourcePack_fk);
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL")
+    },
+    connects_to=["ClientEntityFile"],
+    weak_connects_to=[
+        ("identifier", "Entity", "identifier")
+    ]
+)
+class ClientEntity: ...
 
-CREATE TABLE ClientEntity (
-    ClientEntity_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ClientEntityFile_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "identifier": (str, "NOT NULL"),
+        "condition": (str, ""),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["ClientEntity"],
+    weak_connects_to=[
+        ("identifier", "RenderController", "identifier")
+    ]
+)
+class ClientEntityRenderControllerField: ...
 
-    identifier TEXT NOT NULL,
-    FOREIGN KEY (ClientEntityFile_fk) REFERENCES ClientEntityFile (ClientEntityFile_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX ClientEntity_ClientEntityFile_fk
-ON ClientEntity (ClientEntityFile_fk);
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["ClientEntity"],
+    weak_connects_to=[
+        ("identifier", "Geometry", "identifier")
+    ]
+)
+class ClientEntityGeometryField: ...
 
-CREATE TABLE ClientEntityRenderControllerField (
-    ClientEntityRenderControllerField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ClientEntity_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
 
-    identifier TEXT NOT NULL,
-    condition TEXT,
-    jsonPath TEXT NOT NULL,
+        # identifier is the path without the extension
+        "identifier": (str, "NOT NULL"),
 
-    FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX ClientEntityRenderControllerField_ClientEntity_fk
-ON ClientEntityRenderControllerField (ClientEntity_fk);
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["ClientEntity"],
+    weak_connects_to=[
+        ("identifier", "TextureFile", "identifier")
+    ]
+)
+class ClientEntityTextureField: ...
 
-CREATE TABLE ClientEntityGeometryField (
-    ClientEntityGeometryField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ClientEntity_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["ClientEntity"]
+)
+class ClientEntityMaterialField: ...
 
-    shortName TEXT NOT NULL,
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-    
-    FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX ClientEntityGeometryField_ClientEntity_fk
-ON ClientEntityGeometryField (ClientEntity_fk);
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["ClientEntity"],
+    weak_connects_to=[
+        ("identifier", "RpAnimation", "identifier")
+    ]
+)
+class ClientEntityAnimationField: ...
 
-CREATE TABLE ClientEntityTextureField (
-    ClientEntityTextureField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ClientEntity_fk INTEGER NOT NULL,
+@dbtableview(
+    properties={
+        "shortName": (str, "NOT NULL"),
+        "identifier": (str, "NOT NULL"),
+        "jsonPath": (str, "NOT NULL")
+    },
+    connects_to=["ClientEntity"],
+    weak_connects_to=[
+        ("identifier", "RpAnimationController", "identifier")
+    ]
+)
+class ClientEntityAnimationControllerField: ...
 
-
-    shortName TEXT NOT NULL,
-    -- identifier is the path without the extension
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX ClientEntityTextureField_ClientEntity_fk
-ON ClientEntityTextureField (ClientEntity_fk);
-
-
-CREATE TABLE ClientEntityMaterialField (
-    ClientEntityMaterialField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ClientEntity_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX ClientEntityMaterialField_ClientEntity_fk
-ON ClientEntityMaterialField (ClientEntity_fk);
-
-CREATE TABLE ClientEntityAnimationField (
-    ClientEntityAnimationField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ClientEntity_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX ClientEntityAnimationField_ClientEntity_fk
-ON ClientEntityAnimationField (ClientEntity_fk);
-
-CREATE TABLE ClientEntityAnimationControllerField (
-    ClientEntityAnimationControllerField_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ClientEntity_fk INTEGER NOT NULL,
-
-    shortName TEXT NOT NULL,
-    identifier TEXT NOT NULL,
-    jsonPath TEXT NOT NULL,
-
-    FOREIGN KEY (ClientEntity_fk) REFERENCES ClientEntity (ClientEntity_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX ClientEntityAnimationControllerField_ClientEntity_fk
-ON ClientEntityAnimationControllerField (ClientEntity_fk);
-'''
+CLIENT_ENTITY_BUILD_SCRIPT = (
+    ClientEntityFile.build_script +
+    ClientEntity.build_script +
+    ClientEntityRenderControllerField.build_script +
+    ClientEntityGeometryField.build_script +
+    ClientEntityTextureField.build_script +
+    ClientEntityMaterialField.build_script +
+    ClientEntityAnimationField.build_script +
+    ClientEntityAnimationControllerField.build_script
+)
 
 def load_client_entities(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

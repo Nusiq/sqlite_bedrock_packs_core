@@ -1,23 +1,20 @@
 from sqlite3 import Connection
 from pathlib import Path
+from .decorators import dbtableview
 
+@dbtableview(
+    properties={
+        "path": (Path, "NOT NULL"),
 
-SOUND_BUILD_SCRIPT = '''
--- Sound
-CREATE TABLE SoundFile (
-    SoundFile_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-    ResourcePack_fk INTEGER,
+        # The identifier is the path without extension. This is added to the DB to
+        # make searches easier.
+        "identifier": (str, "NOT NULL")
+    },
+    connects_to=["ResourcePack"]
+)
+class SoundFile: ...
 
-    path Path NOT NULL,
-    -- The identifier is the path without extension. This is added to the DB to
-    -- make searches easier.
-    identifier TEXT NOT NULL,
-    FOREIGN KEY (ResourcePack_fk) REFERENCES ResourcePack (ResourcePack_pk)
-        ON DELETE CASCADE
-);
-CREATE INDEX SoundFile_ResourcePack_fk
-ON SoundFile (ResourcePack_fk);
-'''
+SOUND_BUILD_SCRIPT = SoundFile.build_script
 
 def load_sounds(db: Connection, rp_id: int):
     rp_path: Path = db.execute(
