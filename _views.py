@@ -1,6 +1,6 @@
 '''
-This file contains decorators for generating creating data classes for the
-database table and everything related to it.
+This file contains the decorators that create the view classes for the tables
+of the database.
 '''
 
 from __future__ import annotations
@@ -275,7 +275,8 @@ class _DbTableView:
         # BUILD THE CLASS
         result = namedtuple(
             self.cls.__name__,
-            ["connection", "id"]
+            ["connection", "id"],
+            module="sqlite_bedrock_packs"
         )
         # Add the attributes of the original class
         for name, value in list(self.cls.__dict__.items()):

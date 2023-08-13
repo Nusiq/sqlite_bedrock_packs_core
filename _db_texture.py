@@ -1,6 +1,6 @@
 from sqlite3 import Connection
 from pathlib import Path
-from .decorators import dbtableview
+from ._views import dbtableview
 
 @dbtableview(
     properties={

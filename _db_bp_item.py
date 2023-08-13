@@ -3,7 +3,7 @@ from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
 from .utils import parse_format_version
-from .decorators import dbtableview
+from ._views import dbtableview
 import json
 
 @dbtableview(

@@ -6,7 +6,7 @@ from typing import Literal, NamedTuple
 from copy import copy
 import json
 
-from .decorators import dbtableview
+from ._views import dbtableview
 from .better_json_tools import JSONWalker, load_jsonc
 from .utils import find_molang_resources
 
