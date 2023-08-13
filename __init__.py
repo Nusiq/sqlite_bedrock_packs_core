@@ -1,9 +1,7 @@
 # Weird "import X as X" syntax is for some IDEs to recognize the imports
 # as values accessible from the module.
 from .db_main import (
-    Database as Database
-)
-from .easy_query import (
+    Database as Database,
     EasyQuery as EasyQuery,
     Left as Left,
 )
