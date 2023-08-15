@@ -1,5 +1,5 @@
-import typing
 import pathlib
+import typing
 import sqlite3
 from ._views import AbstractDBView
 from ._db_resource_pack import *

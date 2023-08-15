@@ -328,7 +328,11 @@ class _DbTableView:
         result.build_script = build_script
         # ADD ANNOTATIONS TO THE CLASS
         # Add the annotations of the original class
-        result.__annotations__ = self.cls.__annotations__
+        result.__annotations__ = {}
+        try:
+            result.__annotations__ = self.cls.__annotations__
+        except AttributeError:
+            pass
         # Add the annotations of the properties
         for name, (type_, _) in self.properties.items():
             result.__annotations__[name] = type_
