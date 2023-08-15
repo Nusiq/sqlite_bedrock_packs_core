@@ -8,7 +8,7 @@ from pathlib import Path
 from sqlite3 import Connection
 from typing import (
     Iterable, Iterator, Literal, NamedTuple, Optional, Union,
-    TypeVarTuple, TypeVar, overload, TYPE_CHECKING, Any, Type)
+    TypeVar, overload, TYPE_CHECKING, Any, Type)
 
 # The BP and RP must be imported before other _db_* modules because they are
 # roots of the dependency graph.
@@ -17,7 +17,7 @@ from ._views import (
     RELATION_MAP, WRAPPER_CLASSES, add_reverse_connections,
     validate_weak_connections, AbstractDBView)
 
-VERSION = (3, 0, 0)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
+VERSION = (3, 0, 1)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
 __version__ = '.'.join([str(x) for x in VERSION])
 
 # SQLite3 converters/adapters
@@ -282,7 +282,6 @@ _T6 = TypeVar("_T6", bound=AbstractDBView)
 _T7 = TypeVar("_T7", bound=AbstractDBView)
 _T8 = TypeVar("_T8", bound=AbstractDBView)
 _T9 = TypeVar("_T9", bound=AbstractDBView)
-_Ts = TypeVarTuple("_Ts")  # TODO: Add bounds when PEP 646 is implemented
 
 class Left(NamedTuple):
     '''
@@ -302,7 +301,7 @@ if TYPE_CHECKING:
 
 def build_easy_query(
         root: _T2,
-        *tables: *_Ts,
+        *tables: Any,
         blacklist: Iterable[str] = ("BehaviorPack", "ResourcePack"),
         accept_non_pk: bool = True,
         distinct: bool = True,
@@ -608,7 +607,7 @@ def yield_from_easy_query(
 def yield_from_easy_query(
         db: Union[Connection, Database],
         root: Any,
-        *tables: *Any,
+        *tables: Any,
         blacklist: Iterable[str] = ("BehaviorPack", "ResourcePack"),
         accept_non_pk: bool = True,
         distinct: bool = True,

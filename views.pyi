@@ -1,6 +1,6 @@
-import sqlite3
-import pathlib
 import typing
+import pathlib
+import sqlite3
 from ._views import AbstractDBView
 from ._db_resource_pack import *
 from ._db_behavior_pack import *
