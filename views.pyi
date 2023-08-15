@@ -1,0 +1,468 @@
+import typing
+import pathlib
+import sqlite3
+from ._views import AbstractDBView
+from ._db_resource_pack import *
+from ._db_behavior_pack import *
+from ._db_attachable import *
+from ._db_bp_animation import *
+from ._db_bp_animation_controller import *
+from ._db_bp_item import *
+from ._db_client_entity import *
+from ._db_entity import *
+from ._db_geometry import *
+from ._db_loot_table import *
+from ._db_particle import *
+from ._db_render_controller import *
+from ._db_rp_animation import *
+from ._db_rp_animation_controller import *
+from ._db_rp_item import *
+from ._db_sound import *
+from ._db_sound_definitions import *
+from ._db_texture import *
+from ._db_trade_table import *
+class ResourcePack(AbstractDBView):
+    path: pathlib.Path
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class BehaviorPack(AbstractDBView):
+    path: pathlib.Path
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class AttachableFile(AbstractDBView):
+    path: pathlib.Path
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class Attachable(AbstractDBView):
+    identifier: str
+    AttachableFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class AttachableItemField(AbstractDBView):
+    identifier: str
+    condition: str
+    jsonPath: str
+    Attachable_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class AttachableMaterialField(AbstractDBView):
+    shortName: str
+    identifier: str
+    jsonPath: str
+    Attachable_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class AttachableTextureField(AbstractDBView):
+    shortName: str
+    identifier: str
+    jsonPath: str
+    Attachable_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class AttachableGeometryField(AbstractDBView):
+    shortName: str
+    identifier: str
+    jsonPath: str
+    Attachable_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class AttachableRenderControllerField(AbstractDBView):
+    identifier: str
+    condition: str
+    jsonPath: str
+    Attachable_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class AttachableAnimationField(AbstractDBView):
+    shortName: str
+    identifier: str
+    jsonPath: str
+    Attachable_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class AttachableAnimationControllerField(AbstractDBView):
+    shortName: str
+    identifier: str
+    jsonPath: str
+    Attachable_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class BpAnimationFile(AbstractDBView):
+    path: pathlib.Path
+    BehaviorPack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class BpAnimation(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    BpAnimationFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class BpAnimationControllerFile(AbstractDBView):
+    path: pathlib.Path
+    BehaviorPack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class BpAnimationController(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    BpAnimationControllerFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class BpItemFile(AbstractDBView):
+    path: pathlib.Path
+    BehaviorPack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class BpItem(AbstractDBView):
+    identifier: str
+    texture: str
+    BpItemFile_fk: int
+    parserVersion: str
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class ClientEntityFile(AbstractDBView):
+    path: pathlib.Path
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class ClientEntity(AbstractDBView):
+    identifier: str
+    ClientEntityFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class ClientEntityRenderControllerField(AbstractDBView):
+    identifier: str
+    condition: str
+    jsonPath: str
+    ClientEntity_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class ClientEntityGeometryField(AbstractDBView):
+    shortName: str
+    identifier: str
+    jsonPath: str
+    ClientEntity_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class ClientEntityTextureField(AbstractDBView):
+    shortName: str
+    identifier: str
+    jsonPath: str
+    ClientEntity_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class ClientEntityMaterialField(AbstractDBView):
+    shortName: str
+    identifier: str
+    jsonPath: str
+    ClientEntity_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class ClientEntityAnimationField(AbstractDBView):
+    shortName: str
+    identifier: str
+    jsonPath: str
+    ClientEntity_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class ClientEntityAnimationControllerField(AbstractDBView):
+    shortName: str
+    identifier: str
+    jsonPath: str
+    ClientEntity_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class EntityFile(AbstractDBView):
+    path: pathlib.Path
+    BehaviorPack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class Entity(AbstractDBView):
+    identifier: str
+    EntityFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class EntityLootField(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    Entity_fk: int
+    componentType: str
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class EntityTradeField(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    Entity_fk: int
+    componentType: str
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class EntitySpawnEggField(AbstractDBView):
+    identifier: str
+    Entity_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class GeometryFile(AbstractDBView):
+    path: pathlib.Path
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class Geometry(AbstractDBView):
+    identifier: str
+    parent: str
+    jsonPath: str
+    GeometryFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class LootTableFile(AbstractDBView):
+    path: pathlib.Path
+    BehaviorPack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class LootTable(AbstractDBView):
+    identifier: str
+    LootTableFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class LootTableItemField(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    LootTable_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class LootTableItemSpawnEggReferenceField(AbstractDBView):
+    entityIdentifier: str
+    spawnEggIdentifier: str
+    jsonPath: str
+    LootTableItemField_fk: int
+    connectionType: str
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class LootTableLootTableField(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    LootTable_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class ParticleFile(AbstractDBView):
+    path: pathlib.Path
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class Particle(AbstractDBView):
+    identifier: str
+    material: str
+    texture: str
+    ParticleFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RenderControllerFile(AbstractDBView):
+    path: pathlib.Path
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RenderController(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    RenderControllerFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RenderControllerTexturesField(AbstractDBView):
+    ownerArray: str
+    inOwnerArrayJsonPath: str
+    shortName: str
+    jsonPath: str
+    RenderController_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RenderControllerMaterialsField(AbstractDBView):
+    ownerArray: str
+    inOwnerArrayJsonPath: str
+    shortName: str
+    jsonPath: str
+    boneNamePattern: str
+    RenderController_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RenderControllerGeometryField(AbstractDBView):
+    ownerArray: str
+    inOwnerArrayJsonPath: str
+    shortName: str
+    jsonPath: str
+    RenderController_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RpAnimationFile(AbstractDBView):
+    path: pathlib.Path
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RpAnimation(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    RpAnimationFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RpAnimationParticleEffect(AbstractDBView):
+    shortName: str
+    jsonPath: str
+    RpAnimation_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RpAnimationSoundEffect(AbstractDBView):
+    shortName: str
+    jsonPath: str
+    RpAnimation_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RpAnimationControllerFile(AbstractDBView):
+    path: pathlib.Path
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RpAnimationController(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    RpAnimationControllerFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RpAnimationControllerParticleEffect(AbstractDBView):
+    shortName: str
+    jsonPath: str
+    RpAnimationController_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RpAnimationControllerSoundEffect(AbstractDBView):
+    shortName: str
+    jsonPath: str
+    RpAnimationController_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RpItemFile(AbstractDBView):
+    path: pathlib.Path
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class RpItem(AbstractDBView):
+    identifier: str
+    icon: str
+    RpItemFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class SoundFile(AbstractDBView):
+    path: pathlib.Path
+    identifier: str
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class SoundDefinitionsFile(AbstractDBView):
+    path: pathlib.Path
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class SoundDefinition(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    SoundDefinitionsFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class SoundDefinitionSoundField(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    SoundDefinition_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class TextureFile(AbstractDBView):
+    path: pathlib.Path
+    identifier: str
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class TradeTableFile(AbstractDBView):
+    path: pathlib.Path
+    BehaviorPack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class TradeTable(AbstractDBView):
+    identifier: str
+    TradeTableFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class TradeTableItemField(AbstractDBView):
+    identifier: str
+    dataValue: int
+    jsonPath: str
+    TradeTable_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+class TradeTableItemSpawnEggReferenceField(AbstractDBView):
+    entityIdentifier: str
+    spawnEggIdentifier: str
+    jsonPath: str
+    TradeTableItemField_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable

@@ -5,141 +5,17 @@ from collections import deque
 from collections.abc import Container
 from dataclasses import dataclass
 from pathlib import Path
-from sqlite3 import Connection, Cursor
-from typing import Iterable, Iterator, Literal, NamedTuple, Optional, Union
-
-# The unusual "import X as X" syntax is used a hack to expose the classses from
-# the _db_* modules as attributes of the sqlite_bedrock_packs module. Otherwise
-# they wouldn't shouw in type hints in certain IDEs.
+from sqlite3 import Connection
+from typing import (
+    Iterable, Iterator, Literal, NamedTuple, Optional, Union,
+    TypeVarTuple, TypeVar, overload, TYPE_CHECKING, Any, Type)
 
 # The BP and RP must be imported before other _db_* modules because they are
 # roots of the dependency graph.
-from ._db_resource_pack import (
-    RESOURCE_PACK_BUILD_SCRIPT,
-    load_resource_pack,
-    ResourcePack as ResourcePack)
-from ._db_behavior_pack import (
-    BEHAVIOR_PACK_BUILD_SCRIPT,
-    load_behavior_pack,
-    BehaviorPack as BehaviorPack)
-
-from ._db_attachable import (
-    ATTACHABLE_BUILD_SCRIPT,
-    load_attachables,
-    AttachableFile as AttachableFile,
-    Attachable as Attachable,
-    AttachableItemField as AttachableItemField,
-    AttachableMaterialField as AttachableMaterialField,
-    AttachableTextureField as AttachableTextureField,
-    AttachableGeometryField as AttachableGeometryField,
-    AttachableRenderControllerField as AttachableRenderControllerField,
-    AttachableAnimationField as AttachableAnimationField,
-    AttachableAnimationControllerField as AttachableAnimationControllerField)
-from ._db_bp_animation import (
-    BP_ANIMATION_BUILD_SCRIPT,
-    load_bp_animations,
-    BpAnimationFile as BpAnimationFile,
-    BpAnimation as BpAnimation)
-from ._db_bp_animation_controller import (
-    BP_ANIMATION_CONTROLLER_BUILD_SCRIPT,
-    load_bp_animation_controllers,
-    BpAnimationControllerFile as BpAnimationControllerFile,
-    BpAnimationController as BpAnimationController)
-from ._db_bp_item import (
-    BP_ITEM_BUILD_SCRIPT,
-    load_bp_items,
-    BpItemFile as BpItemFile,
-    BpItem as BpItem)
-from ._db_client_entity import (
-    CLIENT_ENTITY_BUILD_SCRIPT,
-    load_client_entities,
-    ClientEntity as ClientEntity,
-    ClientEntityAnimationControllerField as ClientEntityAnimationControllerField,
-    ClientEntityAnimationField as ClientEntityAnimationField,
-    ClientEntityFile as ClientEntityFile,
-    ClientEntityGeometryField as ClientEntityGeometryField,
-    ClientEntityMaterialField as ClientEntityMaterialField,
-    ClientEntityRenderControllerField as ClientEntityRenderControllerField,
-    ClientEntityTextureField as ClientEntityTextureField,)
-from ._db_entity import (
-    ENTITY_BUILD_SCRIPT,
-    load_entities,
-    EntityFile as EntityFile,
-    Entity as Entity,
-    EntityLootField as EntityLootField,
-    EntityTradeField as EntityTradeField,
-    EntitySpawnEggField as EntitySpawnEggField)
-from ._db_geometry import (
-    GEOMETRY_BUILD_SCRIPT,
-    load_geometries,
-    Geometry as Geometry,
-    GeometryFile as GeometryFile)
-from ._db_loot_table import (
-    LOOT_TABLE_BUILD_SCRIPT,
-    load_loot_tables,
-    LootTableFile as LootTableFile,
-    LootTable as LootTable,
-    LootTableItemField as LootTableItemField,
-    LootTableItemSpawnEggReferenceField as LootTableItemSpawnEggReferenceField,
-    LootTableLootTableField as LootTableLootTableField,)
-from ._db_particle import (
-    PARTICLE_BUILD_SCRIPT,
-    load_particles,
-    ParticleFile as ParticleFile,
-    Particle as Particle)
-from ._db_render_controller import (
-    RENDER_CONTROLLER_BUILD_SCRIPT,
-    load_render_controllers,
-    RenderControllerFile as RenderControllerFile,
-    RenderController as RenderController,
-    RenderControllerTexturesField as RenderControllerTexturesField,
-    RenderControllerMaterialsField as RenderControllerMaterialsField,
-    RenderControllerGeometryField as RenderControllerGeometryField)
-from ._db_rp_animation import (
-    RP_ANIMATION_BUILD_SCRIPT,
-    load_rp_animations,
-    RpAnimationFile as RpAnimationFile,
-    RpAnimation as RpAnimation,
-    RpAnimationParticleEffect as RpAnimationParticleEffect,
-    RpAnimationSoundEffect as RpAnimationSoundEffect)
-from ._db_rp_animation_controller import (
-    RP_ANIMATION_CONTROLLER_BUILD_SCRIPT,
-    load_rp_animation_controllers,
-    RpAnimationControllerFile as RpAnimationControllerFile,
-    RpAnimationController as RpAnimationController,
-    RpAnimationControllerParticleEffect as RpAnimationControllerParticleEffect,
-    RpAnimationControllerSoundEffect as RpAnimationControllerSoundEffect)
-from ._db_rp_item import (
-    RP_ITEM_BUILD_SCRIPT,
-    load_rp_items,
-    RpItemFile as RpItemFile,
-    RpItem as RpItem)
-from ._db_sound import (
-    SOUND_BUILD_SCRIPT,
-    load_sounds,
-    SoundFile as SoundFile)
-from ._db_sound_definitions import (
-    SOUND_DEFINITIONS_BUILD_SCRIPT,
-    load_sound_definitions,
-    SoundDefinitionsFile as SoundDefinitionsFile,
-    SoundDefinition as SoundDefinition,
-    SoundDefinitionSoundField as SoundDefinitionSoundField)
-from ._db_texture import (
-    TEXTURE_BUILD_SCRIPT,
-    load_textures,
-    TextureFile as TextureFile)
-from ._db_trade_table import (
-    TRADE_TABLE_BUILD_SCRIPT,
-    load_trade_tables,
-    TradeTableFile as TradeTableFile,
-    TradeTable as TradeTable,
-    TradeTableItemField as TradeTableItemField,
-    TradeTableItemSpawnEggReferenceField as TradeTableItemSpawnEggReferenceField)
+from .views import *
 from ._views import (
-    RELATION_MAP,
-    WRAPPER_CLASSES,
-    add_reverse_connections,
-    validate_weak_connections)
+    RELATION_MAP, WRAPPER_CLASSES, add_reverse_connections,
+    validate_weak_connections, AbstractDBView)
 
 VERSION = (2, 1, 1)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
 __version__ = '.'.join([str(x) for x in VERSION])
@@ -396,6 +272,17 @@ class Database:
         '''
         self.connection.commit()
 
+
+_T = TypeVar("_T", bound=AbstractDBView)
+_T2 = TypeVar("_T2", bound=AbstractDBView)
+_T3 = TypeVar("_T3", bound=AbstractDBView)
+_T4 = TypeVar("_T4", bound=AbstractDBView)
+_T5 = TypeVar("_T5", bound=AbstractDBView)
+_T6 = TypeVar("_T6", bound=AbstractDBView)
+_T7 = TypeVar("_T7", bound=AbstractDBView)
+_T8 = TypeVar("_T8", bound=AbstractDBView)
+_T9 = TypeVar("_T9", bound=AbstractDBView)
+
 class Left(NamedTuple):
     '''
     A helper class to indicate that a table should be joined using LEFT join in
@@ -404,179 +291,99 @@ class Left(NamedTuple):
     value: str
     '''The name of the table'''
 
-# EASY QUERY
-@dataclass
-class EasyQuery:
+if TYPE_CHECKING:
+    # This is a hack to satisfy the type checker. IT makes it think that
+    # Left is a function that returns the same type as the argument which
+    # is later used in the EasyQuery class to deterimine the types of the
+    # arguments to yield.
+    def Left(value: Type[_T]) -> Type[_T]:
+        return value
+
+# TODO: UPDATE THE DOCSTRING
+def build_easy_query(
+        root: Any,
+        *tables: Any,
+        blacklist: Iterable[str] = ("BehaviorPack", "ResourcePack"),
+        accept_non_pk: bool = True,
+        distinct: bool = True,
+        where: Optional[list[str]] = None,
+        group_by: Optional[list[str]] = None,
+        having: Optional[list[str]] = None,
+        order_by: Optional[list[str]] = None) -> str:
     '''
-    EasyQuery is a class which allows quick and easy way of building and
-    executing queries on the database.
+    Returns a string with a SQL query for the sqlite_bedrock_packs database.
 
-    In most cases queries should be build using the :meth:`EasyQuery.build`
-    method. Creating them manually is possible and can be useful if you want to
-    use benefits of some of the methods of this class. In this case make sure
-    that the results of the query are pimary keys of the tables and that the
-    columns are named after the tables.
+    Example:
+
+    .. code-block:: python
+
+        >>> query = EasyQuery(
+        ...     None, "Entity", Left("Geometry"), "RpAnimation",
+        ...     accept_non_pk=True,
+        ...     where=[
+        ...         "EntityFile.EntityFile_pk == 1"
+        ...     ]
+        ... ).sql_code
+        >>> print(query)
+        SELECT DISTINCT
+                Entity_pk AS Entity,
+                Geometry_pk AS Geometry,
+                RpAnimation_pk AS RpAnimation
+        FROM Entity
+        JOIN ClientEntity
+                ON Entity.identifier = ClientEntity.identifier
+        JOIN ClientEntityGeometryField
+                ON ClientEntity.ClientEntity_pk = ClientEntityGeometryField.ClientEntity_fk
+        LEFT JOIN Geometry
+                ON ClientEntityGeometryField.identifier = Geometry.identifier
+        JOIN ClientEntityAnimationField
+                ON ClientEntity.ClientEntity_pk = ClientEntityAnimationField.ClientEntity_fk
+        JOIN RpAnimation
+                ON ClientEntityAnimationField.identifier = RpAnimation.identifier
+        WHERE
+                EntityFile.EntityFile_pk == 1
+
+    :param db: The database connection or :class:`Database` object. The
+        db can be None if you only want to get the query string and don't
+        care about running it.
+    :param root: The root table to start the query from.
+    :param tables: A list of tables to join. Use Left to indicate that a table
+        should be joined using LEFT join. The tables don't need to have a
+        direct connection between each other, the connections will be found
+        automatically if necessary relations exist (this means that the query
+        genrated can include tables that are not in the list).
+    :param blacklist: A list of tables to ignore while searching for
+        connections. By default it's BehaviorPack and ResourcePack because
+        otherwise in many cases the query would look for objects from the same
+        packs instead of using different more useful connections.
+    :param accept_non_pk: Whether to accept non-primary key relations.
+        By default it's True. The primary key connections only cover the
+        situations where it's guaranteed that the relation is valid (like
+        a relation between EntityFile and Entity). Most of the connections
+        that might be useful to query are non-primary key connections (like
+        a relation between a ClientEntity and RenderController).
+    :param distinct: Whether to use DISTINCT in the query. By default it's
+        True. It's recommended to use it when querying for multiple tables
+        because otherwise the query might return the same row multiple times.
+    :param where: A list of constraints to add to the query. This is a
+        list of strings with raw SQL code which is inserted into the WHERE
+        part of the query. The constraints are joined using AND.
+    :param group_by: A list of columns to group the results by. This is a
+        list of strings with raw SQL code which is inserted into the GROUP BY
+        part of the query.
+    :param having: A list of constraints to add to the query. This is a
+        list of strings with raw SQL code which is inserted into the HAVING
+        part of the query. The constraints are joined using AND.
+    :param order_by: A list of columns to order the results by. This is a
+        list of strings with raw SQL code which is inserted into the ORDER BY
+        part of the query.
     '''
-    connection: Connection
-    '''The database connection.'''
-
-    sql_code: str
-    '''The query runnned by this instance of :class:`EasyQuery`.'''
-
-    @staticmethod
-    def build(
-            db: Union[Connection, Database, None],
-            root: str,
-            *tables: Union[str, Left],
-            blacklist: Iterable[str] = ("BehaviorPack", "ResourcePack"),
-            accept_non_pk: bool = True,
-            distinct: bool = True,
-            where: Optional[list[str]] = None,
-            group_by: Optional[list[str]] = None,
-            having: Optional[list[str]] = None,
-            order_by: Optional[list[str]] = None) -> EasyQuery:
-        '''
-        Creates an instance of :class:`EasyQuery` from the given properties.
-        This is a go-to method for creating an instance of :class:`EasyQuery`.
-
-        This function automatically finds the relations in the database to find
-        the connections between provided tables. The rows of the results of the
-        query contain primary keys of the provided tables. The query build by
-        this function is then passed to the :class:`EasyQuery` constructor.
-
-        Example:
-
-        .. code-block:: python
-
-            >>> query = EasyQuery(
-            ...     None, "Entity", Left("Geometry"), "RpAnimation",
-            ...     accept_non_pk=True,
-            ...     where=[
-            ...         "EntityFile.EntityFile_pk == 1"
-            ...     ]
-            ... ).sql_code
-            >>> print(query)
-            SELECT DISTINCT
-                    Entity_pk AS Entity,
-                    Geometry_pk AS Geometry,
-                    RpAnimation_pk AS RpAnimation
-            FROM Entity
-            JOIN ClientEntity
-                    ON Entity.identifier = ClientEntity.identifier
-            JOIN ClientEntityGeometryField
-                    ON ClientEntity.ClientEntity_pk = ClientEntityGeometryField.ClientEntity_fk
-            LEFT JOIN Geometry
-                    ON ClientEntityGeometryField.identifier = Geometry.identifier
-            JOIN ClientEntityAnimationField
-                    ON ClientEntity.ClientEntity_pk = ClientEntityAnimationField.ClientEntity_fk
-            JOIN RpAnimation
-                    ON ClientEntityAnimationField.identifier = RpAnimation.identifier
-            WHERE
-                    EntityFile.EntityFile_pk == 1
-
-        :param db: The database connection or :class:`Database` object. The
-            db can be None if you only want to get the query string and don't
-            care about running it.
-        :param root: The root table to start the query from.
-        :param tables: A list of tables to join. Use Left to indicate that a table
-            should be joined using LEFT join. The tables don't need to have a
-            direct connection between each other, the connections will be found
-            automatically if necessary relations exist (this means that the query
-            genrated can include tables that are not in the list).
-        :param blacklist: A list of tables to ignore while searching for
-            connections. By default it's BehaviorPack and ResourcePack because
-            otherwise in many cases the query would look for objects from the same
-            packs instead of using different more useful connections.
-        :param accept_non_pk: Whether to accept non-primary key relations.
-            By default it's True. The primary key connections only cover the
-            situations where it's guaranteed that the relation is valid (like
-            a relation between EntityFile and Entity). Most of the connections
-            that might be useful to query are non-primary key connections (like
-            a relation between a ClientEntity and RenderController).
-        :param distinct: Whether to use DISTINCT in the query. By default it's
-            True. It's recommended to use it when querying for multiple tables
-            because otherwise the query might return the same row multiple times.
-        :param where: A list of constraints to add to the query. This is a
-            list of strings with raw SQL code which is inserted into the WHERE
-            part of the query. The constraints are joined using AND.
-        :param group_by: A list of columns to group the results by. This is a
-            list of strings with raw SQL code which is inserted into the GROUP BY
-            part of the query.
-        :param having: A list of constraints to add to the query. This is a
-            list of strings with raw SQL code which is inserted into the HAVING
-            part of the query. The constraints are joined using AND.
-        :param order_by: A list of columns to order the results by. This is a
-            list of strings with raw SQL code which is inserted into the ORDER BY
-            part of the query.
-
-
-        '''
-        # If db is None, continue (this is useful for testing)
-        if db is not None and not isinstance(db, Connection):
-            # isinstance(db, Database) - not checking for Ddatabase because
-            # I don't want to run into circular imports in the future. It
-            # is however properly type hinted thanks to TYPE_CHECKING.
-            db = db.connection
-        return EasyQuery(
-            db,
-            _easy_query(
-                root, *tables,
-                blacklist=blacklist,
-                accept_non_pk=accept_non_pk,
-                distinct=distinct,
-                where=where,
-                group_by=group_by,
-                having=having,
-                order_by=order_by
-            )
-        )
-
-    def run(self) -> Cursor:
-        '''
-        Run the query on the database and return the cursor.
-        '''
-        return self.connection.execute(self.sql_code)
-
-    def yield_wrappers(self) -> Iterator[tuple]:
-        '''
-        Returns an iterator that yields the wrapper classes from the query
-        results. The results are tuples with wrapper classes from
-        :mod:`sqlite_bedrock_packs.wrappers` module based on the tables in
-        the query. If the query is using LEFT join, the wrapper class will be
-        None if the row doesn't have a value.
-        '''
-        cursor = self.run()
-        wrappers = [
-            WRAPPER_CLASSES[d[0]] for d in cursor.description
-        ]
-        for row in cursor:
-            yield tuple(
-                None if value is None else wrapper(self.connection, value)
-                for value, wrapper in zip(row, wrappers)
-            )
-
-@dataclass
-class _EasyQueryConnection:
-    left: str
-    left_column: str
-    right: str
-    right_column: str
-    left_join: bool = False
-
-def _easy_query(
-        root: str, *tables: Union[str, Left], blacklist: Iterable[str],
-        accept_non_pk: bool, distinct: bool, where: Optional[list[str]],
-        group_by: Optional[list[str]], having: Optional[list[str]],
-        order_by: Optional[list[str]]) -> str:
-    '''
-    A helper function that builds queries for :class:`EasyQuery` class.
-    '''
-    all_tables: list[Union[str, Left]] = [root, *tables]
+    all_tables: list[Union[_T, Left]] = [root, *tables]
     for t in all_tables:
-        t_val = t.value if isinstance(t, Left) else t
-        if t_val not in RELATION_MAP.keys():
+        t_name = t.value.__name__ if isinstance(t, Left) else t.__name__
+        if t_name not in RELATION_MAP.keys():
             raise ValueError(
-                f"Table '{t_val}' does not exist in the database.")
+                f"Table '{t_name}' does not exist in the database.")
     prev_t = None
     joined_connections: list[_EasyQueryConnection] = []
     blacklist = list(blacklist)
@@ -589,11 +396,11 @@ def _easy_query(
             left = True
             t = t.value
         connection = _find_connection(
-            prev_t, t, accept_non_pk, set(blacklist))
+            prev_t.__name__, t.__name__, accept_non_pk, set(blacklist))
         if connection is None:
             raise ValueError(
-                f"No connection between {prev_t} and {t} after excluding "
-                f"tables: {', '.join(blacklist)}")
+                f"No connection between {prev_t.__name__} and {t.__name__} "
+                f"after excluding tables: {', '.join(blacklist)}")
         # if left and len(connection) > 1:
         if left:
             connection[-1].left_join = True
@@ -611,13 +418,15 @@ def _easy_query(
 
     # Convert all tables to list[str] (we don't need Left objects anymore)
     # the infromation is in the reduced_joined_queries
-    all_tables = [
-        t.value if isinstance(t, Left) else t
+    all_tables_str = [
+        t.value.__name__
+        if isinstance(t, Left)
+        else t.__name__
         for t in all_tables]
     # Build the quer
-    selection = ",\n\t".join([f"{t}_pk AS {t}" for t in all_tables])
+    selection = ",\n\t".join([f"{t}_pk AS {t}" for t in all_tables_str])
     select = "SELECT DISTINCT" if distinct else "SELECT"
-    query = f'{select}\n\t{selection}\nFROM {all_tables[0]}'
+    query = f'{select}\n\t{selection}\nFROM {all_tables_str[0]}'
     for c in reduced_joined_connections:
         join = "LEFT JOIN" if c.left_join else "JOIN"
         query += (
@@ -640,6 +449,220 @@ def _easy_query(
             order_by = [order_by]
         query += f'\nORDER BY\n\t'+"\n\t, ".join(order_by)
     return query
+
+@overload
+def yield_from_easy_query(
+        db: Union[Connection, Database],
+        t1: Type[_T],
+        /,
+        blacklist: Iterable[str] = ...,
+        accept_non_pk: bool = ...,
+        distinct: bool = ...,
+        where: Optional[list[str]] = ...,
+        group_by: Optional[list[str]] = ...,
+        having: Optional[list[str]] = ...,
+        order_by: Optional[list[str]] = ...
+) -> Iterator[tuple[_T]]: ...
+@overload
+def yield_from_easy_query(
+        db: Union[Connection, Database],
+        t1: Type[_T],
+        t2: Type[_T2],
+        /,
+        blacklist: Iterable[str] = ...,
+        accept_non_pk: bool = ...,
+        distinct: bool = ...,
+        where: Optional[list[str]] = ...,
+        group_by: Optional[list[str]] = ...,
+        having: Optional[list[str]] = ...,
+        order_by: Optional[list[str]] = ...
+) -> Iterator[tuple[_T, _T2]]: ...
+@overload
+def yield_from_easy_query(
+        db: Union[Connection, Database],
+        t1: Type[_T],
+        t2: Type[_T2],
+        t3: Type[_T3],
+        /,
+        blacklist: Iterable[str] = ...,
+        accept_non_pk: bool = ...,
+        distinct: bool = ...,
+        where: Optional[list[str]] = ...,
+        group_by: Optional[list[str]] = ...,
+        having: Optional[list[str]] = ...,
+        order_by: Optional[list[str]] = ...
+) -> Iterator[tuple[_T, _T2, _T3]]: ...
+@overload
+def yield_from_easy_query(
+        db: Union[Connection, Database],
+        t1: Type[_T],
+        t2: Type[_T2],
+        t3: Type[_T3],
+        t4: Type[_T4],
+        /,
+        blacklist: Iterable[str] = ...,
+        accept_non_pk: bool = ...,
+        distinct: bool = ...,
+        where: Optional[list[str]] = ...,
+        group_by: Optional[list[str]] = ...,
+        having: Optional[list[str]] = ...,
+        order_by: Optional[list[str]] = ...
+) -> Iterator[tuple[_T, _T2, _T3, _T4]]: ...
+@overload
+def yield_from_easy_query(
+        db: Union[Connection, Database],
+        t1: Type[_T],
+        t2: Type[_T2],
+        t3: Type[_T3],
+        t4: Type[_T4],
+        t5: Type[_T5],
+        /,
+        blacklist: Iterable[str] = ...,
+        accept_non_pk: bool = ...,
+        distinct: bool = ...,
+        where: Optional[list[str]] = ...,
+        group_by: Optional[list[str]] = ...,
+        having: Optional[list[str]] = ...,
+        order_by: Optional[list[str]] = ...
+) -> Iterator[tuple[_T, _T2, _T3, _T4, _T5]]: ...
+@overload
+def yield_from_easy_query(
+        db: Union[Connection, Database],
+        t1: Type[_T],
+        t2: Type[_T2],
+        t3: Type[_T3],
+        t4: Type[_T4],
+        t5: Type[_T5],
+        t6: Type[_T6],
+        /,
+        blacklist: Iterable[str] = ...,
+        accept_non_pk: bool = ...,
+        distinct: bool = ...,
+        where: Optional[list[str]] = ...,
+        group_by: Optional[list[str]] = ...,
+        having: Optional[list[str]] = ...,
+        order_by: Optional[list[str]] = ...
+) -> Iterator[tuple[_T, _T2, _T3, _T4, _T5, _T6]]: ...
+@overload
+def yield_from_easy_query(
+        db: Union[Connection, Database],
+        t1: Type[_T],
+        t2: Type[_T2],
+        t3: Type[_T3],
+        t4: Type[_T4],
+        t5: Type[_T5],
+        t6: Type[_T6],
+        t7: Type[_T7],
+        /,
+        blacklist: Iterable[str] = ...,
+        accept_non_pk: bool = ...,
+        distinct: bool = ...,
+        where: Optional[list[str]] = ...,
+        group_by: Optional[list[str]] = ...,
+        having: Optional[list[str]] = ...,
+        order_by: Optional[list[str]] = ...
+) -> Iterator[tuple[_T, _T2, _T3, _T4, _T5, _T6, _T7]]: ...
+@overload
+def yield_from_easy_query(
+        db: Union[Connection, Database],
+        t1: Type[_T],
+        t2: Type[_T2],
+        t3: Type[_T3],
+        t4: Type[_T4],
+        t5: Type[_T5],
+        t6: Type[_T6],
+        t7: Type[_T7],
+        t8: Type[_T8],
+        /,
+        blacklist: Iterable[str] = ...,
+        accept_non_pk: bool = ...,
+        distinct: bool = ...,
+        where: Optional[list[str]] = ...,
+        group_by: Optional[list[str]] = ...,
+        having: Optional[list[str]] = ...,
+        order_by: Optional[list[str]] = ...
+) -> Iterator[tuple[_T, _T2, _T3, _T4, _T5, _T6, _T7, _T8]]: ...
+@overload
+def yield_from_easy_query(
+        db: Union[Connection, Database],
+        t1: Type[_T],
+        t2: Type[_T2],
+        t3: Type[_T3],
+        t4: Type[_T4],
+        t5: Type[_T5],
+        t6: Type[_T6],
+        t7: Type[_T7],
+        t8: Type[_T8],
+        t9: Type[_T9],
+        /,
+        blacklist: Iterable[str] = ...,
+        accept_non_pk: bool = ...,
+        distinct: bool = ...,
+        where: Optional[list[str]] = ...,
+        group_by: Optional[list[str]] = ...,
+        having: Optional[list[str]] = ...,
+        order_by: Optional[list[str]] = ...
+) -> Iterator[tuple[_T, _T2, _T3, _T4, _T5, _T6, _T7, _T8, _T9]]: ...
+
+# TODO: UPDATE THE DOCSTRING
+def yield_from_easy_query(
+        db: Union[Connection, Database],
+        root: Any,
+        *tables: *Any,
+        blacklist: Iterable[str] = ("BehaviorPack", "ResourcePack"),
+        accept_non_pk: bool = True,
+        distinct: bool = True,
+        where: Optional[list[str]] = None,
+        group_by: Optional[list[str]] = None,
+        having: Optional[list[str]] = None,
+        order_by: Optional[list[str]] = None) -> Iterator[tuple]:
+    '''
+    Returns an iterator that yields the wrapper classes from the query
+    results. The results are tuples with wrapper classes from
+    :mod:`sqlite_bedrock_packs.wrappers` module based on the tables in
+    the query. If the query is using LEFT join, the wrapper class will be
+    None if the row doesn't have a value.
+    '''
+
+    # Copy the arguments and pass them to build_easy_query
+    sql_query = build_easy_query(
+        root, *tables,
+        blacklist=blacklist,
+        accept_non_pk=accept_non_pk,
+        distinct=distinct,
+        where=where,
+        group_by=group_by,
+        having=having,
+        order_by=order_by
+    )
+    yield from yield_from_any_query(db, sql_query)
+
+# TODO: WRITE DOCSTRING
+def yield_from_any_query(db: Union[Connection, Database], sql_query: str) -> Iterator[tuple]:
+    if isinstance(db, Database):
+        db = db.connection
+    cursor = db.execute(sql_query)
+    wrappers = [
+        WRAPPER_CLASSES[d[0]] for d in cursor.description
+    ]
+    for row in cursor:
+        yield tuple(
+            None if value is None else wrapper(db, value)
+            for value, wrapper in zip(row, wrappers)
+        )
+
+# Private functions
+@dataclass
+class _EasyQueryConnection:
+    '''
+    Represents a connection between two tables internally when searching for
+    indirect connections in the database with :func:`_find_connection`.
+    '''
+    left: str
+    left_column: str
+    right: str
+    right_column: str
+    left_join: bool = False
 
 def _find_connection(
         start: str, end: str, accept_non_pk: bool, visited: set[str]):

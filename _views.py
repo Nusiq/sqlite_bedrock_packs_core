@@ -4,10 +4,12 @@ of the database.
 '''
 
 from __future__ import annotations
-from typing import Literal
+from typing import Literal, Callable
 from pathlib import Path
 from collections import namedtuple
 from typing import NamedTuple
+from abc import ABC
+import sqlite3
 
 _SUPPORTED_TYPES = {
     Path: "Path",
@@ -77,6 +79,13 @@ def add_reverse_connections():
                     columns=(v2.columns[1], v2.columns[0]),
                     is_pk=RELATION_MAP[this_table][other_table].is_pk
                 )
+
+
+class AbstractDBView(ABC):
+    '''
+    This abstract class is used in the PYI files as a parent of all of
+    the wrapped classes.
+    '''
 
 class _DbTableView:
     '''
@@ -276,7 +285,7 @@ class _DbTableView:
         result = namedtuple(
             self.cls.__name__,
             ["connection", "id"],
-            module="sqlite_bedrock_packs"
+            module="sqlite_bedrock_packs.views"
         )
         # Add the attributes of the original class
         for name, value in list(self.cls.__dict__.items()):
@@ -311,12 +320,29 @@ class _DbTableView:
                 self.properties.items(),
                 start=len(self.connects_to)):
             @property
-            def property_method(self, i=i): #  -> type_:
+            def property_method(self, i=i)  -> type_:
                 return self.query_result()[i]
             setattr(result, name, property_method)
 
         # Add the script to the class
         result.build_script = build_script
+        # ADD ANNOTATIONS TO THE CLASS
+        # Add the annotations of the original class
+        result.__annotations__ = self.cls.__annotations__
+        # Add the annotations of the properties
+        for name, (type_, _) in self.properties.items():
+            result.__annotations__[name] = type_
+        # Add the annotations of the foreign keys
+        for name in self.connects_to:
+            result.__annotations__[f"{name}_fk"] = int
+        # Add the annotations of the enum properties
+        for name in self.enum_properties:
+            result.__annotations__[name] = str
+        # Add the annotations of the id and connection
+        result.__annotations__["id"] = int
+        result.__annotations__["connection"] = sqlite3.Connection
+        # Add the annotations of the query_result method
+        result.__annotations__["query_result"] = Callable[[], tuple]
 
         # REGISTER IN THE WRAPPER_CLASSES MAP
         WRAPPER_CLASSES[self.cls.__name__] = result
