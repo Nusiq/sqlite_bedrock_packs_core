@@ -17,7 +17,7 @@ from ._views import (
     RELATION_MAP, WRAPPER_CLASSES, add_reverse_connections,
     validate_weak_connections, AbstractDBView)
 
-VERSION = (3, 0, 1)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
+VERSION = (3, 0, 2)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
 __version__ = '.'.join([str(x) for x in VERSION])
 
 # SQLite3 converters/adapters

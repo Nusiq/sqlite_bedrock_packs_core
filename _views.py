@@ -282,50 +282,121 @@ class _DbTableView:
         build_script = "\n".join(build_script_lines) + "\n"
 
         # BUILD THE CLASS
-        result = namedtuple(
-            self.cls.__name__,
-            ["connection", "id"],
-            module="sqlite_bedrock_packs.views"
-        )
-        # Add the attributes of the original class
-        for name, value in list(self.cls.__dict__.items()):
-            if name.startswith("__") and name.endswith("__"):
-                continue
-            setattr(result, name, value)
+        # Check if the original function doesn't define properties that are
+        # required for the decorated class to work
+        for reserved_name in [
+                "query_result", "_query_result_cache", "build_script"]:
+            if reserved_name in self.cls.__dict__:
+                raise ValueError(
+                    "Unable to decorate class because it already defines "
+                    "a property reserved for the decorated class result.\n"
+                    f"Property name: {reserved_name}"
+                )
+        # Check if the original function doesn't define a property that is
+        # required for accesing the properties of the table in the database
+        for name in self.connects_to:
+            reserved_name = f"{name}_fk"
+            if reserved_name in self.cls.__dict__:
+                raise ValueError(
+                    "Unable to decorate class because it already defines "
+                    "a property defined in the 'connect_to' property of the "
+                    "decorator.\n"
+                    f"Property name: {reserved_name}"
+                )
+        for name in self.properties:
+            if name in self.cls.__dict__:
+                raise ValueError(
+                    "Unable to decorate class because it already defines "
+                    "a property defined in the 'properties' property of "
+                    "the decorator.\n"
+                    f"Property name: {name}"
+                )
+        for name in self.enum_properties:
+            if name in self.cls.__dict__:
+                raise ValueError(
+                    "Unable to decorate class because it already defines "
+                    "a property defined in the 'enum_properties' property of "
+                    "the decorator.\n"
+                    f"Property name: {name}"
+                )
 
+        # The init function
+        def init(self_, connection: sqlite3.Connection, id: int):
+            self_._connection: sqlite3.Connection = connection
+            self_._id: int = id
+            self_._query_result_cache = None
+        init.__qualname__ = f"{self.cls.__name__}.__init__"
 
         # Add the 'query_result' method
         _query_result_columns = ", ".join(
             [f"{name}_fk" for name in self.connects_to] +
-            [name for name in self.properties]
+            [name for name in self.properties] +
+            [name for name in self.enum_properties]
         )
-        _qr_cache = [None]
         def query_result(self_):
-            if _qr_cache[0] is None:
-                _qr_cache[0] = self_.connection.execute(
+            if self_._query_result_cache is None:
+                self_._query_result_cache = self_.connection.execute(
                     f"SELECT {_query_result_columns} "
                     f"FROM {self.cls.__name__} "
                     f"WHERE {self.cls.__name__}_pk = ?",
                     (self_.id,)
                 ).fetchone()
-            return _qr_cache[0]
-        result.query_result = query_result
+            return self_._query_result_cache
+        query_result.__qualname__ = f"{self.cls.__name__}.query_result"
+
         # Add the @property decorated property methods
+        properties = {}
+        # ...for the foreign keys
         for i, name in enumerate(self.connects_to):
             @property
             def property_method(self, i=i) -> int:
                 return self.query_result()[i]
-            setattr(result, f"{name}_fk", property_method)
+            properties[f"{name}_fk"] = property_method
+        # ...for the properties
         for i, (name, (type_, _)) in enumerate(
                 self.properties.items(),
                 start=len(self.connects_to)):
             @property
-            def property_method(self, i=i)  -> type_:
+            def property_method(self, i=i) -> type_:
                 return self.query_result()[i]
-            setattr(result, name, property_method)
+            properties[name] = property_method
+        # ...for the enum properties
+        for i, name in enumerate(
+                self.enum_properties,
+                start=len(self.connects_to) + len(self.properties)):
+            @property
+            def property_method(self, i=i) -> str:
+                return self.query_result()[i]
+            properties[name] = property_method
+        # ...for the id and connection
+        @property
+        def id_(self) -> int:
+            return self._id
+        properties["id"] = id_
+        @property
+        def connection(self) -> sqlite3.Connection:
+            return self._connection
+        properties["connection"] = connection
 
-        # Add the script to the class
-        result.build_script = build_script
+        # Create the type object
+        result = type(
+            self.cls.__name__,
+            tuple(),
+            {
+                "__init__": init,
+                "__doc__": f'{self.cls.__name__}(connection, id)',
+                "__slots__": ("_id", "_connection", "_query_result_cache"),
+                "__module__": "sqlite_bedrock_packs.views",
+                "query_result": query_result,
+                "build_script": build_script
+            } | properties | {
+                # Add the attributes of the original class
+                name: value
+                for name, value in list(self.cls.__dict__.items())
+                if not (name.startswith("__") and name.endswith("__"))
+            }
+        )
+
         # ADD ANNOTATIONS TO THE CLASS
         # Add the annotations of the original class
         result.__annotations__ = {}
@@ -347,6 +418,8 @@ class _DbTableView:
         result.__annotations__["connection"] = sqlite3.Connection
         # Add the annotations of the query_result method
         result.__annotations__["query_result"] = Callable[[], tuple]
+        # Add the annotations of the build_script method
+        result.__annotations__["build_script"] = str
 
         # REGISTER IN THE WRAPPER_CLASSES MAP
         WRAPPER_CLASSES[self.cls.__name__] = result
