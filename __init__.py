@@ -49,7 +49,8 @@ DbBpItems = Literal[
     "trade_tables",
     "bp_animations",
     "bp_animation_controllers",
-    "bp_items"
+    "bp_items",
+    "bp_blocks"
 ]
 
 # THE MAIN DATABASE CLASS
@@ -125,6 +126,7 @@ class Database:
         db.executescript(BP_ANIMATION_BUILD_SCRIPT)
         db.executescript(BP_ANIMATION_CONTROLLER_BUILD_SCRIPT)
         db.executescript(BP_ITEM_BUILD_SCRIPT)
+        db.executescript(BP_BLOCK_BUILD_SCRIPT)
 
         return Database(db)
 
@@ -217,6 +219,7 @@ class Database:
                 "bp_animations",
                 "bp_animation_controllers",
                 "bp_items",
+                "bp_blocks"
             ),
             exclude: Container[DbBpItems] = tuple()) -> None:
         '''
@@ -258,6 +261,10 @@ class Database:
                 "bp_items" in include and
                 "bp_items" not in exclude):
             load_bp_items(self.connection, bp_pk)
+        if (
+                "bp_blocks" in include and
+                "bp_blocks" not in exclude):
+            load_bp_blocks(self.connection, bp_pk)
         self.connection.commit()
 
     def close(self):

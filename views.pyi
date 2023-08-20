@@ -2,11 +2,14 @@ import pathlib
 import sqlite3
 import typing
 from ._views import AbstractDBView
+# First bp and rp
 from ._db_resource_pack import *
 from ._db_behavior_pack import *
+# Then other tables that rely on them
 from ._db_attachable import *
 from ._db_bp_animation import *
 from ._db_bp_animation_controller import *
+from ._db_bp_block import *
 from ._db_bp_item import *
 from ._db_client_entity import *
 from ._db_entity import *
@@ -136,6 +139,53 @@ class BpAnimationController(AbstractDBView):
     identifier: str
     jsonPath: str
     BpAnimationControllerFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+    build_script: str
+class BpBlockFile(AbstractDBView):
+    path: pathlib.Path
+    BehaviorPack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+    build_script: str
+class BpBlock(AbstractDBView):
+    identifier: str
+    BpBlockFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+    build_script: str
+class BpBlockLootField(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    BpBlock_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+    build_script: str
+class BpBlockGeometryField(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    BpBlock_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+    build_script: str
+class BpBlockMaterialInstancesField(AbstractDBView):
+    jsonPath: str
+    BpBlock_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+    build_script: str
+class BpBlockMaterialInstancesFieldInstance(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    texture: str
+    renderMethod: str
+    BpBlockMaterialInstancesField_fk: int
     id: int
     connection: sqlite3.Connection
     query_result: typing.Callable
