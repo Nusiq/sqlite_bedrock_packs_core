@@ -11,7 +11,7 @@ from ._views import dbtableview
 class BehaviorPack: ...
 
 
-BEHAVIOR_PACK_BUILD_SCRIPT = BehaviorPack.build_script
+BEHAVIOR_PACK_BUILD_SCRIPT: str = BehaviorPack.build_script
 
 def load_behavior_pack(db: Connection, rp_path: Union[Path, str]) -> int:
     if isinstance(rp_path, Path):

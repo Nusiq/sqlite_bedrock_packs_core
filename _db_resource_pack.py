@@ -11,7 +11,7 @@ from ._views import dbtableview
 )
 class ResourcePack: ...
 
-RESOURCE_PACK_BUILD_SCRIPT = ResourcePack.build_script
+RESOURCE_PACK_BUILD_SCRIPT: str = ResourcePack.build_script
 
 def load_resource_pack(db: Connection, rp_path: Union[Path, str]) -> int:
     if isinstance(rp_path, Path):

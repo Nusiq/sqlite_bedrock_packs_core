@@ -4,12 +4,10 @@ of the database.
 '''
 
 from __future__ import annotations
-from typing import Literal, Callable
+from typing import Literal
 from pathlib import Path
-from collections import namedtuple
-from typing import NamedTuple
+from typing import NamedTuple, Any, TYPE_CHECKING
 from abc import ABC
-from textwrap import dedent
 import sqlite3
 
 _SUPPORTED_TYPES = {
@@ -25,7 +23,7 @@ class _TableConnection(NamedTuple):
     is_pk: bool
     '''Whether the connection is referencing a primary key of other table.'''
 
-class _WeakTableConnection(NamedTuple):
+class WeakTableConnection(NamedTuple):
     '''
     Used for type annotation in the 'dbtableview' decorator for
     weak_connects_to argument.
@@ -87,6 +85,9 @@ class AbstractDBView(ABC):
     This abstract class is used in the PYI files as a parent of all of
     the wrapped classes.
     '''
+    if TYPE_CHECKING:
+        __name__: str
+        build_script: str
 
 class _DbTableView:
     '''
@@ -99,20 +100,20 @@ class _DbTableView:
             properties: dict[str, tuple[type,Literal["NOT NULL", ""]]],
             enum_properties: dict[str, list[str]],
             connects_to: list[str],
-            weak_connects_to: list[_WeakTableConnection]):
+            weak_connects_to: list[WeakTableConnection]):
         # VALIDATE THE PARAMETERS
         # Properties
-        if not isinstance(properties, dict):
+        if not isinstance(properties, dict):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError("The 'properties' parameter must be a dict")
         for name, value in properties.items():
-            if not isinstance(name, str):
+            if not isinstance(name, str):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError(
                     "The keys of the 'properties' parameter must be strings")
             if not name.isidentifier():
                 raise ValueError(
                     f"The key '{name}' of the 'properties' parameter is not a "
                     "valid identifier")
-            if not isinstance(value, tuple):
+            if not isinstance(value, tuple):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError(
                     "The values of the 'properties' parameter must be tuples")
             if len(value) != 2:
@@ -127,10 +128,10 @@ class _DbTableView:
                 raise ValueError(
                     f"The type {value[0]} is not supported by the decorator")
         # Enum properties
-        if not isinstance(enum_properties, dict):
+        if not isinstance(enum_properties, dict):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError("The 'enum_properties' parameter must be a dict")
         for name, value in enum_properties.items():
-            if not isinstance(name, str):
+            if not isinstance(name, str):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError(
                     "The keys of the 'enum_properties' parameter must be "
                     "strings")
@@ -138,21 +139,21 @@ class _DbTableView:
                 raise ValueError(
                     f"The key '{name}' of the 'enum_properties' parameter is "
                     "not a valid identifier")
-            if not isinstance(value, list):
+            if not isinstance(value, list):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError(
                     "The values of the 'enum_properties' parameter must be "
                     "lists")
             for item in value:
-                if not isinstance(item, str):
+                if not isinstance(item, str):  # pyright: ignore[reportUnnecessaryIsInstance]
                     raise TypeError(
                         "The values of the lists of the 'enum_properties' "
                         "parameter must be strings")
         # Connects to
-        if not isinstance(connects_to, list):
+        if not isinstance(connects_to, list):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(
                 "The 'connects_to' parameter must be a list of strings")
         for name in connects_to:
-            if not isinstance(name, str):
+            if not isinstance(name, str):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError(
                     "The 'connects_to' parameter must be a list of strings")
             if not name.isidentifier():
@@ -160,11 +161,11 @@ class _DbTableView:
                     f"The value '{name}' of the 'connects_to' parameter is not "
                     "a valid identifier")
         # Weak connects to
-        if not isinstance(weak_connects_to, list):
+        if not isinstance(weak_connects_to, list):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(
                 "The 'weak_connects_to' parameter must be a list of tuples")
         for item in weak_connects_to:
-            if not isinstance(item, tuple):
+            if not isinstance(item, tuple):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError(
                     "The 'weak_connects_to' parameter must be a list of "
                     "tuples")
@@ -172,7 +173,7 @@ class _DbTableView:
                 raise ValueError(
                     "The tuples of the 'weak_connects_to' parameter must be "
                     "of length 3")
-            if not isinstance(item[0], str):
+            if not isinstance(item[0], str):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError(
                     "The first value of the tuples of the 'weak_connects_to' "
                     "parameter must be a string")
@@ -180,7 +181,7 @@ class _DbTableView:
                 raise ValueError(
                     f"The first value '{item[0]}' of the tuples of the "
                     "'weak_connects_to' parameter is not a valid identifier")
-            if not isinstance(item[1], str):
+            if not isinstance(item[1], str):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError(
                     "The second value of the tuples of the "
                     "'weak_connects_to' parameter must be a string")
@@ -188,7 +189,7 @@ class _DbTableView:
                 raise ValueError(
                     f"The second value '{item[1]}' of the tuples of the "
                     "'weak_connects_to' parameter is not a valid identifier")
-            if not isinstance(item[2], str):
+            if not isinstance(item[2], str):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError(
                     "The third value of the tuples of the "
                     "'weak_connects_to' parameter must be a string")
@@ -335,9 +336,9 @@ class _DbTableView:
         '''
         Creates the init method of the class.
         '''
-        def init(self_, connection: sqlite3.Connection, id: int):
-            self_._connection: sqlite3.Connection = connection
-            self_._id: int = id
+        def init(self_: Any, connection: sqlite3.Connection, id: int):
+            self_._connection = connection
+            self_._id = id
             self_._query_result_cache = None
         init.__qualname__ = f"{self.cls.__name__}.__init__"
         return init
@@ -352,7 +353,7 @@ class _DbTableView:
             [name for name in self.enum_properties]
         )
 
-        def query_result(self_):
+        def query_result(self_: Any):
             if self_._query_result_cache is None:
                 self_._query_result_cache = self_.connection.execute(
                     f"SELECT {_query_result_columns} "
@@ -368,37 +369,37 @@ class _DbTableView:
         '''
         Creates the @property decorated properties of the class.
         '''
-        properties = {}
+        properties: dict[str, Any] = {}
         # FOREIGN KEYS
         for i, name in enumerate(self.connects_to):
             @property
-            def property_method(self, /, _i=i) -> int:
+            def fk_prop_method(self: Any, /, _i: int=i) -> int:
                 return self.query_result()[_i]
-            properties[f"{name}_fk"] = property_method
+            properties[f"{name}_fk"] = fk_prop_method
         # REGULAR PROPERTIES
         for i, (name, (type_, _)) in enumerate(
                 self.properties.items(),
                 start=len(self.connects_to)):
             @property
-            def property_method(self, /, _i=i) -> type_:
+            def prop_method(self: Any, /, _i: int=i) -> type_:  # pyright: ignore
                 return self.query_result()[_i]
-            properties[name] = property_method
+            properties[name] = prop_method
         # ENUM PROPERTIES
         for i, name in enumerate(
                 self.enum_properties,
                 start=len(self.connects_to) + len(self.properties)):
             @property
-            def property_method(self, /, _i=i) -> str:
+            def enum_prop_method(self: Any, /, _i: int = i) -> str:
                 return self.query_result()[_i]
-            properties[name] = property_method
+            properties[name] = enum_prop_method
         # ID and CONNECTION
         @property
-        def id_(self) -> int:
+        def id_(self: Any) -> int:
             return self._id
         properties["id"] = id_
 
         @property
-        def connection(self) -> sqlite3.Connection:
+        def connection(self: Any) -> sqlite3.Connection:
             return self._connection
         properties["connection"] = connection
         return properties
@@ -425,12 +426,12 @@ class _DbTableView:
         annotations_["id"] = int
         annotations_["connection"] = sqlite3.Connection
         # Add the annotations of the query_result method
-        annotations_["query_result"] = Callable[[], tuple]
+        annotations_["query_result"] = "Callable[[], tuple[Any, ...]]"
         # Add the annotations of the build_script method
         annotations_["build_script"] = str
         return annotations_
 
-    def __call__(self) -> type:
+    def __call__(self) -> AbstractDBView:
         # VALIDATE THE PARAMETERS
         self.assert_valid()
         
@@ -446,7 +447,7 @@ class _DbTableView:
         # CREATE THE TYPE OBJECT
         result = type(
             self.cls.__name__,
-            tuple(),
+            (AbstractDBView,),
             {
                 "__init__": init,
                 "__doc__": f'{self.cls.__name__}(connection, id)',
@@ -465,13 +466,13 @@ class _DbTableView:
         # REGISTER IN THE WRAPPER_CLASSES MAP
         WRAPPER_CLASSES[self.cls.__name__] = result
 
-        return result
+        return result  # type: ignore
 
 def dbtableview(
-        properties: dict[str, tuple[type, Literal["NOT NULL", ""]]] = None,
-        enum_properties: dict[str, list[str]] = None,
-        connects_to: list[str] = None,
-        weak_connects_to: list[_WeakTableConnection] = None,
+        properties: dict[str, tuple[type, Literal["NOT NULL", ""]]] | None = None,
+        enum_properties: dict[str, list[str]] | None = None,
+        connects_to: list[str] | None = None,
+        weak_connects_to: list[WeakTableConnection] | None = None,
 ):
     '''
     The "dbtableview" is a decorator that turns a class into a read-only view

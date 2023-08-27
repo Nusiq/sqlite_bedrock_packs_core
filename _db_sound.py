@@ -14,7 +14,7 @@ from ._views import dbtableview
 )
 class SoundFile: ...
 
-SOUND_BUILD_SCRIPT = SoundFile.build_script
+SOUND_BUILD_SCRIPT: str = SoundFile.build_script
 
 def load_sounds(db: Connection, rp_id: int):
     rp_path: Path = db.execute(

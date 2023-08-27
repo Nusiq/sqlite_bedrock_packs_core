@@ -2,7 +2,7 @@ from typing import cast
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
-from ._views import dbtableview
+from ._views import dbtableview, WeakTableConnection
 import json
 
 @dbtableview(
@@ -28,7 +28,7 @@ class BpBlock: ...
     },
     connects_to=["BpBlock"],
     weak_connects_to=[
-        ("identifier", "LootTable", "identifier")
+        WeakTableConnection("identifier", "LootTable", "identifier")
     ]
 )
 class BpBlockLootField: ...
@@ -40,7 +40,7 @@ class BpBlockLootField: ...
     },
     connects_to=["BpBlock"],
     weak_connects_to=[
-        ("identifier", "Geometry", "identifier")
+        WeakTableConnection("identifier", "Geometry", "identifier")
     ]
 )
 class BpBlockGeometryField: ...
@@ -62,12 +62,12 @@ class BpBlockMaterialInstancesField: ...
     },
     connects_to=["BpBlockMaterialInstancesField"],
     weak_connects_to=[
-        ("texture", "TerrainTexture", "identifier")
+        WeakTableConnection("texture", "TerrainTexture", "identifier")
     ]
 )
 class BpBlockMaterialInstancesFieldInstance: ...
 
-BP_BLOCK_BUILD_SCRIPT = (
+BP_BLOCK_BUILD_SCRIPT: str = (
     BpBlockFile.build_script +
     BpBlock.build_script +
     BpBlockLootField.build_script +

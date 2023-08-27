@@ -1,8 +1,7 @@
-from typing import cast, Optional
+from typing import Optional
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
-from .utils import parse_format_version
 from ._views import dbtableview
 import json
 
@@ -23,7 +22,7 @@ class RpItemFile: ...
 )
 class RpItem: ...
 
-RP_ITEM_BUILD_SCRIPT = (
+RP_ITEM_BUILD_SCRIPT: str = (
     RpItemFile.build_script +
     RpItem.build_script
 )

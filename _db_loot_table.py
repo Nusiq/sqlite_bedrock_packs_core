@@ -1,8 +1,7 @@
-from typing import cast, Optional
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
-from ._views import dbtableview
+from ._views import dbtableview, WeakTableConnection
 import json
 
 @dbtableview(
@@ -31,8 +30,8 @@ class LootTable: ...
     },
     connects_to=["LootTable"],
     weak_connects_to=[
-        ("identifier", "RpItem", "identifier"),
-        ("identifier", "BpItem", "identifier")
+        WeakTableConnection("identifier", "RpItem", "identifier"),
+        WeakTableConnection("identifier", "BpItem", "identifier")
     ]
 )
 class LootTableItemField: ...
@@ -54,7 +53,7 @@ class LootTableItemField: ...
     },
     connects_to=["LootTableItemField"],
     weak_connects_to=[
-        ("spawnEggIdentifier", "EntitySpawnEggField", "identifier")
+        WeakTableConnection("spawnEggIdentifier", "EntitySpawnEggField", "identifier")
     ]
 )
 class LootTableItemSpawnEggReferenceField: ...
@@ -66,12 +65,12 @@ class LootTableItemSpawnEggReferenceField: ...
     },
     connects_to=["LootTable"],
     weak_connects_to=[
-        ("identifier", "LootTable", "identifier")
+        WeakTableConnection("identifier", "LootTable", "identifier")
     ]
 )
 class LootTableLootTableField: ...
 
-LOOT_TABLE_BUILD_SCRIPT = (
+LOOT_TABLE_BUILD_SCRIPT: str = (
     LootTableFile.build_script +
     LootTable.build_script +
     LootTableItemField.build_script +

@@ -2,7 +2,7 @@ from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
 import json
-from ._views import dbtableview
+from ._views import dbtableview, WeakTableConnection
 
 @dbtableview(
     properties={
@@ -18,7 +18,7 @@ class ClientEntityFile: ...
     },
     connects_to=["ClientEntityFile"],
     weak_connects_to=[
-        ("identifier", "Entity", "identifier")
+        WeakTableConnection("identifier", "Entity", "identifier")
     ]
 )
 class ClientEntity: ...
@@ -31,7 +31,7 @@ class ClientEntity: ...
     },
     connects_to=["ClientEntity"],
     weak_connects_to=[
-        ("identifier", "RenderController", "identifier")
+        WeakTableConnection("identifier", "RenderController", "identifier")
     ]
 )
 class ClientEntityRenderControllerField: ...
@@ -44,7 +44,7 @@ class ClientEntityRenderControllerField: ...
     },
     connects_to=["ClientEntity"],
     weak_connects_to=[
-        ("identifier", "Geometry", "identifier")
+        WeakTableConnection("identifier", "Geometry", "identifier")
     ]
 )
 class ClientEntityGeometryField: ...
@@ -60,7 +60,7 @@ class ClientEntityGeometryField: ...
     },
     connects_to=["ClientEntity"],
     weak_connects_to=[
-        ("identifier", "TextureFile", "identifier")
+        WeakTableConnection("identifier", "TextureFile", "identifier")
     ]
 )
 class ClientEntityTextureField: ...
@@ -83,7 +83,7 @@ class ClientEntityMaterialField: ...
     },
     connects_to=["ClientEntity"],
     weak_connects_to=[
-        ("identifier", "RpAnimation", "identifier")
+        WeakTableConnection("identifier", "RpAnimation", "identifier")
     ]
 )
 class ClientEntityAnimationField: ...
@@ -96,12 +96,12 @@ class ClientEntityAnimationField: ...
     },
     connects_to=["ClientEntity"],
     weak_connects_to=[
-        ("identifier", "RpAnimationController", "identifier")
+        WeakTableConnection("identifier", "RpAnimationController", "identifier")
     ]
 )
 class ClientEntityAnimationControllerField: ...
 
-CLIENT_ENTITY_BUILD_SCRIPT = (
+CLIENT_ENTITY_BUILD_SCRIPT: str = (
     ClientEntityFile.build_script +
     ClientEntity.build_script +
     ClientEntityRenderControllerField.build_script +

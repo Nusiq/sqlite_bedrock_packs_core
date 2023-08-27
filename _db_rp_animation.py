@@ -40,7 +40,7 @@ class RpAnimationParticleEffect: ...
 )
 class RpAnimationSoundEffect: ...
 
-RP_ANIMATION_BUILD_SCRIPT = (
+RP_ANIMATION_BUILD_SCRIPT: str = (
     RpAnimationFile.build_script +
     RpAnimation.build_script +
     RpAnimationParticleEffect.build_script +

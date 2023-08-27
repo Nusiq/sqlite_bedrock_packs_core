@@ -1,7 +1,7 @@
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
-from ._views import dbtableview
+from ._views import dbtableview, WeakTableConnection
 import json
 
 @dbtableview(
@@ -30,7 +30,7 @@ class Entity: ...
     },
     connects_to=["Entity"],
     weak_connects_to=[
-        ("identifier", "LootTable", "identifier")
+        WeakTableConnection("identifier", "LootTable", "identifier")
     ]
 )
 class EntityLootField: ...
@@ -45,7 +45,7 @@ class EntityLootField: ...
     },
     connects_to=["Entity"],
     weak_connects_to=[
-        ("identifier", "TradeTable", "identifier")
+        WeakTableConnection("identifier", "TradeTable", "identifier")
     ]
 )
 class EntityTradeField: ...
@@ -63,7 +63,7 @@ class EntitySpawnEggField:
     identifier.
     '''
 
-ENTITY_BUILD_SCRIPT = (
+ENTITY_BUILD_SCRIPT: str = (
     EntityFile.build_script +
     Entity.build_script +
     EntityLootField.build_script +

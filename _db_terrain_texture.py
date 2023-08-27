@@ -1,8 +1,8 @@
-from typing import cast, Optional, NamedTuple
+from typing import cast, Optional, NamedTuple, Iterator, TYPE_CHECKING
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc, JSONWalker
-from ._views import dbtableview
+from ._views import dbtableview, WeakTableConnection
 import json
 
 
@@ -35,7 +35,7 @@ class TerrainTexture: ...
     },
     connects_to=["TerrainTexture"],
     weak_connects_to=[
-        ("identifier", "TextureFile", "identifier")
+        WeakTableConnection("identifier", "TextureFile", "identifier")
     ]
 )
 class TerrainTextureVariation:
@@ -60,7 +60,7 @@ class TerrainTextureVariation:
         variations[variation_index].path
     '''
 
-TERRAIN_TEXTURE_BUILD_SCRIPT = (
+TERRAIN_TEXTURE_BUILD_SCRIPT: str = (
     TerrainTextureFile.build_script +
     TerrainTexture.build_script +
     TerrainTextureVariation.build_script
@@ -117,6 +117,7 @@ def load_terrain_texture_items(db: Connection, terrain_texture_path: Path, rp_id
                 (terrain_texture_identifier, file_pk)
             )
             terrain_texture_pk = cursor.lastrowid
+            terrain_texture_pk = cast(int, terrain_texture_pk)
             inserted_textures[terrain_texture_identifier] = terrain_texture_pk
 
         cursor.execute(
@@ -149,6 +150,9 @@ def load_terrain_texture_items(db: Connection, terrain_texture_path: Path, rp_id
             for variant_walker, variant_index, variant_data in _yield_variants(
                     textures_walker):
                 if variant_data.is_variation:
+                    if TYPE_CHECKING:  # We know that from is_variation.
+                        assert isinstance(variant_data.path, str)
+                        assert isinstance(variant_data.json_path, str)
                     _insert_terrain_texture_variation(
                        terrain_texture_identifier=identifier,
                        identifier=variant_data.path,
@@ -176,6 +180,9 @@ def load_terrain_texture_items(db: Connection, terrain_texture_path: Path, rp_id
             except ValueError:
                 return
             if variant_data.is_variation:
+                if TYPE_CHECKING:  # We know that from is_variation.
+                    assert isinstance(variant_data.path, str)
+                    assert isinstance(variant_data.json_path, str)
                 _insert_terrain_texture_variation(
                     terrain_texture_identifier=identifier,
                     identifier=variant_data.path,
@@ -236,7 +243,7 @@ class _VariantData(NamedTuple):
     def is_variation(self) -> bool:
         return self.path is not None
 
-def _yield_variations(variant_walker: JSONWalker) -> tuple[int, _VariationData]:
+def _yield_variations(variant_walker: JSONWalker) -> Iterator[tuple[int, _VariationData]]:
     '''
     Yields the variation data from the JSONWalker that represents a variant.
     '''
@@ -278,7 +285,7 @@ def _get_variant_data(variant_walker: JSONWalker) -> _VariantData:
     return _VariantData(
         path, json_path, tint_color, overlay_color)
 
-def _yield_variants(variant_list_walker: JSONWalker) -> tuple[int, _VariantData]:
+def _yield_variants(variant_list_walker: JSONWalker) -> Iterator[tuple[JSONWalker, int, _VariantData]]:
     '''
     Yields the variant data from the JSONWalker that represents a variant list.
     '''

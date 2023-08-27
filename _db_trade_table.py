@@ -1,9 +1,8 @@
-from typing import cast, Optional
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
 from .utils import split_item_name
-from ._views import dbtableview
+from ._views import dbtableview, WeakTableConnection
 import json
 
 @dbtableview(
@@ -33,8 +32,8 @@ class TradeTable: ...
     },
     connects_to=["TradeTable"],
     weak_connects_to=[
-        ("identifier", "RpItem", "identifier"),
-        ("identifier", "BpItem", "identifier")
+        WeakTableConnection("identifier", "RpItem", "identifier"),
+        WeakTableConnection("identifier", "BpItem", "identifier")
     ]
 )
 class TradeTableItemField: ...
@@ -47,12 +46,12 @@ class TradeTableItemField: ...
     },
     connects_to=["TradeTableItemField"],
     weak_connects_to=[
-        ("spawnEggIdentifier", "EntitySpawnEggField", "identifier")
+        WeakTableConnection("spawnEggIdentifier", "EntitySpawnEggField", "identifier")
     ]
 )
 class TradeTableItemSpawnEggReferenceField: ...
 
-TRADE_TABLE_BUILD_SCRIPT = (
+TRADE_TABLE_BUILD_SCRIPT: str = (
     TradeTableFile.build_script +
     TradeTable.build_script +
     TradeTableItemField.build_script +

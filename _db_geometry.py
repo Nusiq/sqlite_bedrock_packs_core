@@ -23,7 +23,7 @@ class GeometryFile: ...
 )
 class Geometry: ...
 
-GEOMETRY_BUILD_SCRIPT = (
+GEOMETRY_BUILD_SCRIPT: str = (
     GeometryFile.build_script +
     Geometry.build_script
 )

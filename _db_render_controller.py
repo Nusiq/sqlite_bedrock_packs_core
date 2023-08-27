@@ -72,7 +72,7 @@ class RenderControllerMaterialsField: ...
 )
 class RenderControllerGeometryField: ...
 
-RENDER_CONTROLLER_BUILD_SCRIPT = (
+RENDER_CONTROLLER_BUILD_SCRIPT: str = (
     RenderControllerFile.build_script +
     RenderController.build_script +
     RenderControllerTexturesField.build_script +
@@ -112,7 +112,7 @@ def _load_rc_arrays(
         array_path = rc / "arrays" / "textures" // str // int
     else:
         raise ValueError(f"Invalid array type {array_type}")
-    result = defaultdict(list)
+    result: dict[str, list[_LoadRcArraysItem]] = defaultdict(list)
     for obj in array_path:
         if not isinstance(obj.data, str):
             continue

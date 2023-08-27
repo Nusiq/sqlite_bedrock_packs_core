@@ -1,8 +1,8 @@
-from typing import cast, Optional
+from typing import cast
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
-from ._views import dbtableview
+from ._views import dbtableview, WeakTableConnection
 import json
 
 @dbtableview(
@@ -29,12 +29,12 @@ class SoundDefinition: ...
     },
     connects_to=["SoundDefinition"],
     weak_connects_to=[
-        ("identifier", "SoundFile", "identifier")
+        WeakTableConnection("identifier", "SoundFile", "identifier")
     ]
 )
 class SoundDefinitionSoundField: ...
 
-SOUND_DEFINITIONS_BUILD_SCRIPT = (
+SOUND_DEFINITIONS_BUILD_SCRIPT: str = (
     SoundDefinitionsFile.build_script +
     SoundDefinition.build_script +
     SoundDefinitionSoundField.build_script

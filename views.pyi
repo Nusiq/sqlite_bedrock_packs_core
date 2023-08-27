@@ -1,55 +1,55 @@
 import pathlib
 import sqlite3
-import typing
-from ._views import AbstractDBView
+from typing import Any, Callable # pyright: ignore[reportUnusedImport]
+from ._views import AbstractDBView # pyright: ignore[reportUnusedImport]
 # First bp and rp
-from ._db_resource_pack import *
-from ._db_behavior_pack import *
+from ._db_resource_pack import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_behavior_pack import *   # pyright: ignore[reportGeneralTypeIssues]
 # Then other tables that rely on them
-from ._db_attachable import *
-from ._db_bp_animation import *
-from ._db_bp_animation_controller import *
-from ._db_bp_block import *
-from ._db_bp_item import *
-from ._db_client_entity import *
-from ._db_entity import *
-from ._db_geometry import *
-from ._db_loot_table import *
-from ._db_particle import *
-from ._db_render_controller import *
-from ._db_rp_animation import *
-from ._db_rp_animation_controller import *
-from ._db_rp_item import *
-from ._db_sound import *
-from ._db_sound_definitions import *
-from ._db_texture import *
-from ._db_trade_table import *
-from ._db_terrain_texture import *
+from ._db_attachable import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_bp_animation import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_bp_animation_controller import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_bp_block import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_bp_item import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_client_entity import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_entity import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_geometry import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_loot_table import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_particle import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_render_controller import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_rp_animation import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_rp_animation_controller import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_rp_item import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_sound import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_sound_definitions import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_texture import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_trade_table import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_terrain_texture import *   # pyright: ignore[reportGeneralTypeIssues]
 class ResourcePack(AbstractDBView):
     path: pathlib.Path
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BehaviorPack(AbstractDBView):
     path: pathlib.Path
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class AttachableFile(AbstractDBView):
     path: pathlib.Path
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class Attachable(AbstractDBView):
     identifier: str
     AttachableFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class AttachableItemField(AbstractDBView):
     identifier: str
@@ -58,7 +58,7 @@ class AttachableItemField(AbstractDBView):
     Attachable_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class AttachableMaterialField(AbstractDBView):
     shortName: str
@@ -67,7 +67,7 @@ class AttachableMaterialField(AbstractDBView):
     Attachable_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class AttachableTextureField(AbstractDBView):
     shortName: str
@@ -76,7 +76,7 @@ class AttachableTextureField(AbstractDBView):
     Attachable_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class AttachableGeometryField(AbstractDBView):
     shortName: str
@@ -85,7 +85,7 @@ class AttachableGeometryField(AbstractDBView):
     Attachable_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class AttachableRenderControllerField(AbstractDBView):
     identifier: str
@@ -94,7 +94,7 @@ class AttachableRenderControllerField(AbstractDBView):
     Attachable_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class AttachableAnimationField(AbstractDBView):
     shortName: str
@@ -103,7 +103,7 @@ class AttachableAnimationField(AbstractDBView):
     Attachable_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class AttachableAnimationControllerField(AbstractDBView):
     shortName: str
@@ -112,14 +112,14 @@ class AttachableAnimationControllerField(AbstractDBView):
     Attachable_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpAnimationFile(AbstractDBView):
     path: pathlib.Path
     BehaviorPack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpAnimation(AbstractDBView):
     identifier: str
@@ -127,14 +127,14 @@ class BpAnimation(AbstractDBView):
     BpAnimationFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpAnimationControllerFile(AbstractDBView):
     path: pathlib.Path
     BehaviorPack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpAnimationController(AbstractDBView):
     identifier: str
@@ -142,21 +142,21 @@ class BpAnimationController(AbstractDBView):
     BpAnimationControllerFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpBlockFile(AbstractDBView):
     path: pathlib.Path
     BehaviorPack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpBlock(AbstractDBView):
     identifier: str
     BpBlockFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpBlockLootField(AbstractDBView):
     identifier: str
@@ -164,7 +164,7 @@ class BpBlockLootField(AbstractDBView):
     BpBlock_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpBlockGeometryField(AbstractDBView):
     identifier: str
@@ -172,14 +172,14 @@ class BpBlockGeometryField(AbstractDBView):
     BpBlock_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpBlockMaterialInstancesField(AbstractDBView):
     jsonPath: str
     BpBlock_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpBlockMaterialInstancesFieldInstance(AbstractDBView):
     identifier: str
@@ -189,14 +189,14 @@ class BpBlockMaterialInstancesFieldInstance(AbstractDBView):
     BpBlockMaterialInstancesField_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpItemFile(AbstractDBView):
     path: pathlib.Path
     BehaviorPack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class BpItem(AbstractDBView):
     identifier: str
@@ -205,21 +205,21 @@ class BpItem(AbstractDBView):
     parserVersion: str
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class ClientEntityFile(AbstractDBView):
     path: pathlib.Path
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class ClientEntity(AbstractDBView):
     identifier: str
     ClientEntityFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class ClientEntityRenderControllerField(AbstractDBView):
     identifier: str
@@ -228,7 +228,7 @@ class ClientEntityRenderControllerField(AbstractDBView):
     ClientEntity_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class ClientEntityGeometryField(AbstractDBView):
     shortName: str
@@ -237,7 +237,7 @@ class ClientEntityGeometryField(AbstractDBView):
     ClientEntity_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class ClientEntityTextureField(AbstractDBView):
     shortName: str
@@ -246,7 +246,7 @@ class ClientEntityTextureField(AbstractDBView):
     ClientEntity_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class ClientEntityMaterialField(AbstractDBView):
     shortName: str
@@ -255,7 +255,7 @@ class ClientEntityMaterialField(AbstractDBView):
     ClientEntity_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class ClientEntityAnimationField(AbstractDBView):
     shortName: str
@@ -264,7 +264,7 @@ class ClientEntityAnimationField(AbstractDBView):
     ClientEntity_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class ClientEntityAnimationControllerField(AbstractDBView):
     shortName: str
@@ -273,21 +273,21 @@ class ClientEntityAnimationControllerField(AbstractDBView):
     ClientEntity_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class EntityFile(AbstractDBView):
     path: pathlib.Path
     BehaviorPack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class Entity(AbstractDBView):
     identifier: str
     EntityFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class EntityLootField(AbstractDBView):
     identifier: str
@@ -296,7 +296,7 @@ class EntityLootField(AbstractDBView):
     componentType: str
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class EntityTradeField(AbstractDBView):
     identifier: str
@@ -305,21 +305,21 @@ class EntityTradeField(AbstractDBView):
     componentType: str
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class EntitySpawnEggField(AbstractDBView):
     identifier: str
     Entity_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class GeometryFile(AbstractDBView):
     path: pathlib.Path
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class Geometry(AbstractDBView):
     identifier: str
@@ -328,21 +328,21 @@ class Geometry(AbstractDBView):
     GeometryFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class LootTableFile(AbstractDBView):
     path: pathlib.Path
     BehaviorPack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class LootTable(AbstractDBView):
     identifier: str
     LootTableFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class LootTableItemField(AbstractDBView):
     identifier: str
@@ -350,7 +350,7 @@ class LootTableItemField(AbstractDBView):
     LootTable_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class LootTableItemSpawnEggReferenceField(AbstractDBView):
     entityIdentifier: str
@@ -360,7 +360,7 @@ class LootTableItemSpawnEggReferenceField(AbstractDBView):
     connectionType: str
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class LootTableLootTableField(AbstractDBView):
     identifier: str
@@ -368,14 +368,14 @@ class LootTableLootTableField(AbstractDBView):
     LootTable_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class ParticleFile(AbstractDBView):
     path: pathlib.Path
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class Particle(AbstractDBView):
     identifier: str
@@ -384,14 +384,14 @@ class Particle(AbstractDBView):
     ParticleFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RenderControllerFile(AbstractDBView):
     path: pathlib.Path
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RenderController(AbstractDBView):
     identifier: str
@@ -399,7 +399,7 @@ class RenderController(AbstractDBView):
     RenderControllerFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RenderControllerTexturesField(AbstractDBView):
     ownerArray: str
@@ -409,7 +409,7 @@ class RenderControllerTexturesField(AbstractDBView):
     RenderController_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RenderControllerMaterialsField(AbstractDBView):
     ownerArray: str
@@ -420,7 +420,7 @@ class RenderControllerMaterialsField(AbstractDBView):
     RenderController_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RenderControllerGeometryField(AbstractDBView):
     ownerArray: str
@@ -430,14 +430,14 @@ class RenderControllerGeometryField(AbstractDBView):
     RenderController_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RpAnimationFile(AbstractDBView):
     path: pathlib.Path
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RpAnimation(AbstractDBView):
     identifier: str
@@ -445,7 +445,7 @@ class RpAnimation(AbstractDBView):
     RpAnimationFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RpAnimationParticleEffect(AbstractDBView):
     shortName: str
@@ -453,7 +453,7 @@ class RpAnimationParticleEffect(AbstractDBView):
     RpAnimation_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RpAnimationSoundEffect(AbstractDBView):
     shortName: str
@@ -461,14 +461,14 @@ class RpAnimationSoundEffect(AbstractDBView):
     RpAnimation_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RpAnimationControllerFile(AbstractDBView):
     path: pathlib.Path
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RpAnimationController(AbstractDBView):
     identifier: str
@@ -476,7 +476,7 @@ class RpAnimationController(AbstractDBView):
     RpAnimationControllerFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RpAnimationControllerParticleEffect(AbstractDBView):
     shortName: str
@@ -484,7 +484,7 @@ class RpAnimationControllerParticleEffect(AbstractDBView):
     RpAnimationController_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RpAnimationControllerSoundEffect(AbstractDBView):
     shortName: str
@@ -492,14 +492,14 @@ class RpAnimationControllerSoundEffect(AbstractDBView):
     RpAnimationController_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RpItemFile(AbstractDBView):
     path: pathlib.Path
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class RpItem(AbstractDBView):
     identifier: str
@@ -507,7 +507,7 @@ class RpItem(AbstractDBView):
     RpItemFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class SoundFile(AbstractDBView):
     path: pathlib.Path
@@ -515,14 +515,14 @@ class SoundFile(AbstractDBView):
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class SoundDefinitionsFile(AbstractDBView):
     path: pathlib.Path
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class SoundDefinition(AbstractDBView):
     identifier: str
@@ -530,7 +530,7 @@ class SoundDefinition(AbstractDBView):
     SoundDefinitionsFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class SoundDefinitionSoundField(AbstractDBView):
     identifier: str
@@ -538,7 +538,7 @@ class SoundDefinitionSoundField(AbstractDBView):
     SoundDefinition_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class TextureFile(AbstractDBView):
     path: pathlib.Path
@@ -546,21 +546,21 @@ class TextureFile(AbstractDBView):
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class TradeTableFile(AbstractDBView):
     path: pathlib.Path
     BehaviorPack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class TradeTable(AbstractDBView):
     identifier: str
     TradeTableFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class TradeTableItemField(AbstractDBView):
     identifier: str
@@ -569,7 +569,7 @@ class TradeTableItemField(AbstractDBView):
     TradeTable_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class TradeTableItemSpawnEggReferenceField(AbstractDBView):
     entityIdentifier: str
@@ -578,21 +578,21 @@ class TradeTableItemSpawnEggReferenceField(AbstractDBView):
     TradeTableItemField_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class TerrainTextureFile(AbstractDBView):
     path: pathlib.Path
     ResourcePack_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class TerrainTexture(AbstractDBView):
     identifier: str
     TerrainTextureFile_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str
 class TerrainTextureVariation(AbstractDBView):
     identifier: str
@@ -605,5 +605,5 @@ class TerrainTextureVariation(AbstractDBView):
     TerrainTexture_fk: int
     id: int
     connection: sqlite3.Connection
-    query_result: typing.Callable
+    query_result: Callable[[], tuple[Any, ...]]
     build_script: str

@@ -40,7 +40,7 @@ class RpAnimationControllerParticleEffect: ...
 )
 class RpAnimationControllerSoundEffect: ...
 
-RP_ANIMATION_CONTROLLER_BUILD_SCRIPT = (
+RP_ANIMATION_CONTROLLER_BUILD_SCRIPT: str = (
     RpAnimationControllerFile.build_script +
     RpAnimationController.build_script +
     RpAnimationControllerParticleEffect.build_script +

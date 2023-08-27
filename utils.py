@@ -2,7 +2,6 @@
 Functions for analyzing Molang expressions.
 '''
 import re
-from collections import defaultdict
 
 def find_molang_resources(
         molang: str, resource_prefixes: list[str]) -> dict[str, list[str]]:

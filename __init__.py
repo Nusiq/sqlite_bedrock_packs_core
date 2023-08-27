@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from sqlite3 import Connection
 from typing import (
-    Iterable, Iterator, Literal, NamedTuple, Optional, Union,
-    TypeVar, overload, TYPE_CHECKING, Any, Type)
+    Iterable, Iterator, Literal, Optional, Union,
+    TypeVar, overload, Type, Generic, TYPE_CHECKING)
 
 # The BP and RP must be imported before other _db_* modules because they are
 # roots of the dependency graph.
@@ -17,7 +17,7 @@ from ._views import (
     RELATION_MAP, WRAPPER_CLASSES, add_reverse_connections,
     validate_weak_connections, AbstractDBView)
 
-VERSION = (3, 1, 0)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
+VERSION: tuple[int, int, int] = (3, 1, 1)
 __version__ = '.'.join([str(x) for x in VERSION])
 
 # SQLite3 converters/adapters
@@ -134,7 +134,7 @@ class Database:
 
     def load_rp(
         self,
-        rp_path: Path, *,
+        rp_path: Path | str, *,
         include: Container[DbRpItems] = (
             "geometries",
             "client_entities",
@@ -218,7 +218,7 @@ class Database:
         self.connection.commit()
     def load_bp(
             self,
-            bp_path: Path, *,
+            bp_path: Path | str, *,
             include: Container[DbBpItems] = (
                 "entities",
                 "loot_tables",
@@ -297,25 +297,19 @@ _T7 = TypeVar("_T7", bound=AbstractDBView)
 _T8 = TypeVar("_T8", bound=AbstractDBView)
 _T9 = TypeVar("_T9", bound=AbstractDBView)
 
-class Left(NamedTuple):
+class Left(Generic[_T]):
     '''
     A helper class to indicate that a table should be joined using LEFT join in
     the query of :class:`EasyQuery` class.
     '''
-    value: str
-    '''The name of the table'''
+    def __init__(self, value: Type[_T]):
+        self.value = value
 
-if TYPE_CHECKING:
-    # This is a hack to satisfy the type checker. IT makes it think that
-    # Left is a function that returns the same type as the argument which
-    # is later used in the EasyQuery class to deterimine the types of the
-    # arguments to yield.
-    def Left(value: Type[_T]) -> Type[_T]:
-        return value
-
+    if TYPE_CHECKING:
+        __name__: str
 def build_easy_query(
-        root: _T2,
-        *tables: Any,
+        root: Type[AbstractDBView],
+        *tables: Type[AbstractDBView] | Left[AbstractDBView],
         blacklist: Iterable[str] = ("BehaviorPack", "ResourcePack"),
         accept_non_pk: bool = True,
         distinct: bool = True,
@@ -392,7 +386,8 @@ def build_easy_query(
         list of strings with raw SQL code which is inserted into the ORDER BY
         part of the query.
     '''
-    all_tables: list[Union[_T, Left]] = [root, *tables]
+    all_tables: list[Union[type[AbstractDBView], Left[AbstractDBView]]] = [
+        root, *tables]
     for t in all_tables:
         t_name = t.value.__name__ if isinstance(t, Left) else t.__name__
         if t_name not in RELATION_MAP.keys():
@@ -421,7 +416,7 @@ def build_easy_query(
         joined_connections.extend(connection)
         prev_t = t
     # Strip joined_connections of duplicates
-    reduced_joined_connections = []
+    reduced_joined_connections: list[_EasyQueryConnection] = []
     if len(joined_connections) > 0:
         known_connections = {joined_connections[0].left}
         for jc in joined_connections:
@@ -468,7 +463,7 @@ def build_easy_query(
 def yield_from_easy_query(
         db: Union[Connection, Database],
         t1: Type[_T],
-        /,
+        /, *,
         blacklist: Iterable[str] = ...,
         accept_non_pk: bool = ...,
         distinct: bool = ...,
@@ -481,8 +476,8 @@ def yield_from_easy_query(
 def yield_from_easy_query(
         db: Union[Connection, Database],
         t1: Type[_T],
-        t2: Type[_T2],
-        /,
+        t2: Type[_T2] | Left[_T2],
+        /, *,
         blacklist: Iterable[str] = ...,
         accept_non_pk: bool = ...,
         distinct: bool = ...,
@@ -495,9 +490,9 @@ def yield_from_easy_query(
 def yield_from_easy_query(
         db: Union[Connection, Database],
         t1: Type[_T],
-        t2: Type[_T2],
-        t3: Type[_T3],
-        /,
+        t2: Type[_T2] | Left[_T2],
+        t3: Type[_T3] | Left[_T3],
+        /, *,
         blacklist: Iterable[str] = ...,
         accept_non_pk: bool = ...,
         distinct: bool = ...,
@@ -510,10 +505,10 @@ def yield_from_easy_query(
 def yield_from_easy_query(
         db: Union[Connection, Database],
         t1: Type[_T],
-        t2: Type[_T2],
-        t3: Type[_T3],
-        t4: Type[_T4],
-        /,
+        t2: Type[_T2] | Left[_T2],
+        t3: Type[_T3] | Left[_T3],
+        t4: Type[_T4] | Left[_T4],
+        /, *,
         blacklist: Iterable[str] = ...,
         accept_non_pk: bool = ...,
         distinct: bool = ...,
@@ -526,11 +521,11 @@ def yield_from_easy_query(
 def yield_from_easy_query(
         db: Union[Connection, Database],
         t1: Type[_T],
-        t2: Type[_T2],
-        t3: Type[_T3],
-        t4: Type[_T4],
-        t5: Type[_T5],
-        /,
+        t2: Type[_T2] | Left[_T2],
+        t3: Type[_T3] | Left[_T3],
+        t4: Type[_T4] | Left[_T4],
+        t5: Type[_T5] | Left[_T5],
+        /, *,
         blacklist: Iterable[str] = ...,
         accept_non_pk: bool = ...,
         distinct: bool = ...,
@@ -543,12 +538,12 @@ def yield_from_easy_query(
 def yield_from_easy_query(
         db: Union[Connection, Database],
         t1: Type[_T],
-        t2: Type[_T2],
-        t3: Type[_T3],
-        t4: Type[_T4],
-        t5: Type[_T5],
-        t6: Type[_T6],
-        /,
+        t2: Type[_T2] | Left[_T2],
+        t3: Type[_T3] | Left[_T3],
+        t4: Type[_T4] | Left[_T4],
+        t5: Type[_T5] | Left[_T5],
+        t6: Type[_T6] | Left[_T6],
+        /, *,
         blacklist: Iterable[str] = ...,
         accept_non_pk: bool = ...,
         distinct: bool = ...,
@@ -561,13 +556,13 @@ def yield_from_easy_query(
 def yield_from_easy_query(
         db: Union[Connection, Database],
         t1: Type[_T],
-        t2: Type[_T2],
-        t3: Type[_T3],
-        t4: Type[_T4],
-        t5: Type[_T5],
-        t6: Type[_T6],
-        t7: Type[_T7],
-        /,
+        t2: Type[_T2] | Left[_T2],
+        t3: Type[_T3] | Left[_T3],
+        t4: Type[_T4] | Left[_T4],
+        t5: Type[_T5] | Left[_T5],
+        t6: Type[_T6] | Left[_T6],
+        t7: Type[_T7] | Left[_T7],
+        /, *,
         blacklist: Iterable[str] = ...,
         accept_non_pk: bool = ...,
         distinct: bool = ...,
@@ -580,14 +575,14 @@ def yield_from_easy_query(
 def yield_from_easy_query(
         db: Union[Connection, Database],
         t1: Type[_T],
-        t2: Type[_T2],
-        t3: Type[_T3],
-        t4: Type[_T4],
-        t5: Type[_T5],
-        t6: Type[_T6],
-        t7: Type[_T7],
-        t8: Type[_T8],
-        /,
+        t2: Type[_T2] | Left[_T2],
+        t3: Type[_T3] | Left[_T3],
+        t4: Type[_T4] | Left[_T4],
+        t5: Type[_T5] | Left[_T5],
+        t6: Type[_T6] | Left[_T6],
+        t7: Type[_T7] | Left[_T7],
+        t8: Type[_T8] | Left[_T8],
+        /, *,
         blacklist: Iterable[str] = ...,
         accept_non_pk: bool = ...,
         distinct: bool = ...,
@@ -600,15 +595,15 @@ def yield_from_easy_query(
 def yield_from_easy_query(
         db: Union[Connection, Database],
         t1: Type[_T],
-        t2: Type[_T2],
-        t3: Type[_T3],
-        t4: Type[_T4],
-        t5: Type[_T5],
-        t6: Type[_T6],
-        t7: Type[_T7],
-        t8: Type[_T8],
-        t9: Type[_T9],
-        /,
+        t2: Type[_T2] | Left[_T2],
+        t3: Type[_T3] | Left[_T3],
+        t4: Type[_T4] | Left[_T4],
+        t5: Type[_T5] | Left[_T5],
+        t6: Type[_T6] | Left[_T6],
+        t7: Type[_T7] | Left[_T7],
+        t8: Type[_T8] | Left[_T8],
+        t9: Type[_T9] | Left[_T9],
+        /, *,
         blacklist: Iterable[str] = ...,
         accept_non_pk: bool = ...,
         distinct: bool = ...,
@@ -620,15 +615,16 @@ def yield_from_easy_query(
 
 def yield_from_easy_query(
         db: Union[Connection, Database],
-        root: Any,
-        *tables: Any,
+        root: Type[AbstractDBView],
+        /,
+        *tables: Type[AbstractDBView] | Left[AbstractDBView],
         blacklist: Iterable[str] = ("BehaviorPack", "ResourcePack"),
         accept_non_pk: bool = True,
         distinct: bool = True,
         where: Optional[list[str]] = None,
         group_by: Optional[list[str]] = None,
         having: Optional[list[str]] = None,
-        order_by: Optional[list[str]] = None) -> Iterator[tuple]:
+        order_by: Optional[list[str]] = None) -> Iterator[tuple[AbstractDBView | None, ...]]:
     '''
     Returns an iterator that yields the wrapper classes from the query
     results. The arguments are the same as for :func:`build_easy_query`.
@@ -648,7 +644,7 @@ def yield_from_easy_query(
     )
     yield from yield_from_any_query(db, sql_query)
 
-def yield_from_any_query(db: Union[Connection, Database], sql_query: str) -> Iterator[tuple]:
+def yield_from_any_query(db: Union[Connection, Database], sql_query: str) -> Iterator[tuple[AbstractDBView | None]]:
     '''
     Yields the results from any query generated by :func:`build_easy_query`
     function and wraps them in the wrapper classes. This function in

@@ -1,4 +1,4 @@
-from typing import cast, Optional
+from typing import Optional
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
@@ -34,7 +34,7 @@ class BpItemFile: ...
 class BpItem: ...
 
 
-BP_ITEM_BUILD_SCRIPT = (
+BP_ITEM_BUILD_SCRIPT: str = (
     BpItemFile.build_script +
     BpItem.build_script
 )

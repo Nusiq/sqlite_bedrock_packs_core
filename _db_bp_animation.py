@@ -23,7 +23,7 @@ class BpAnimationFile: ...
 )
 class BpAnimation: ...
 
-BP_ANIMATION_BUILD_SCRIPT = (
+BP_ANIMATION_BUILD_SCRIPT: str = (
     BpAnimationFile.build_script +
     BpAnimation.build_script
 )

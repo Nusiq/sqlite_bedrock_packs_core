@@ -1,7 +1,7 @@
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
-from ._views import dbtableview
+from ._views import dbtableview, WeakTableConnection
 import json
 
 
@@ -29,8 +29,8 @@ class Attachable: ...
     },
     connects_to=["Attachable"],
     weak_connects_to=[
-        ("identifier", "RpItem", "identifier"),
-        ("identifier", "BpItem", "identifier")
+        WeakTableConnection("identifier", "RpItem", "identifier"),
+        WeakTableConnection("identifier", "BpItem", "identifier")
     ]
 )
 class AttachableItemField:
@@ -59,7 +59,7 @@ class AttachableMaterialField: ...
     },
     connects_to=["Attachable"],
     weak_connects_to=[
-        ("identifier", "TextureFile", "identifier")
+        WeakTableConnection("identifier", "TextureFile", "identifier")
     ]
 )
 class AttachableTextureField: ...
@@ -72,7 +72,7 @@ class AttachableTextureField: ...
     },
     connects_to=["Attachable"],
     weak_connects_to=[
-        ("identifier", "Geometry", "identifier")
+        WeakTableConnection("identifier", "Geometry", "identifier")
     ]
 )
 class AttachableGeometryField: ...
@@ -85,7 +85,7 @@ class AttachableGeometryField: ...
     },
     connects_to=["Attachable"],
     weak_connects_to=[
-        ("identifier", "RenderController", "identifier")
+        WeakTableConnection("identifier", "RenderController", "identifier")
     ]
 )
 class AttachableRenderControllerField: ...
@@ -98,7 +98,7 @@ class AttachableRenderControllerField: ...
     },
     connects_to=["Attachable"],
     weak_connects_to=[
-        ("identifier", "RpAnimation", "identifier")
+        WeakTableConnection("identifier", "RpAnimation", "identifier")
     ]
 )
 class AttachableAnimationField: ...
@@ -111,13 +111,13 @@ class AttachableAnimationField: ...
     },
     connects_to=["Attachable"],
     weak_connects_to=[
-        ("identifier", "RpAnimationController", "identifier")
+        WeakTableConnection("identifier", "RpAnimationController", "identifier")
     ]
 )
 class AttachableAnimationControllerField: ...
 
 
-ATTACHABLE_BUILD_SCRIPT = (
+ATTACHABLE_BUILD_SCRIPT: str = (
     AttachableFile.build_script +
     Attachable.build_script +
     AttachableItemField.build_script +

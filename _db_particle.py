@@ -1,7 +1,7 @@
 from sqlite3 import Connection
 from pathlib import Path
 from .better_json_tools import load_jsonc
-from ._views import dbtableview
+from ._views import dbtableview, WeakTableConnection
 import json
 
 @dbtableview(
@@ -20,12 +20,12 @@ class ParticleFile: ...
     },
     connects_to=["ParticleFile"],
     weak_connects_to=[
-        ("texture", "TextureFile", "identifier")
+        WeakTableConnection("texture", "TextureFile", "identifier")
     ]
 )
 class Particle: ...
 
-PARTICLE_BUILD_SCRIPT = (
+PARTICLE_BUILD_SCRIPT: str = (
     ParticleFile.build_script +
     Particle.build_script
 )

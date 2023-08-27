@@ -14,7 +14,7 @@ from ._views import dbtableview
 )
 class TextureFile: ...
 
-TEXTURE_BUILD_SCRIPT = TextureFile.build_script
+TEXTURE_BUILD_SCRIPT: str = TextureFile.build_script
 
 def load_textures(db: Connection, rp_id: int):
     rp_path: Path = db.execute(
