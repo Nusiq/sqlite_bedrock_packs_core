@@ -17,7 +17,7 @@ from ._views import (
     RELATION_MAP, WRAPPER_CLASSES, add_reverse_connections,
     validate_weak_connections, AbstractDBView)
 
-VERSION = (3, 0, 2)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
+VERSION = (3, 1, 0)  # COMPATIBILITY BREAK, NEW FEATURE, BUGFIX
 __version__ = '.'.join([str(x) for x in VERSION])
 
 # SQLite3 converters/adapters
@@ -41,6 +41,7 @@ DbRpItems = Literal[
     "sound_definitions",
     "sounds",
     "rp_items",
+    "terrain_texture",
 ]
 
 DbBpItems = Literal[
@@ -118,6 +119,7 @@ class Database:
         db.executescript(SOUND_DEFINITIONS_BUILD_SCRIPT)
         db.executescript(SOUND_BUILD_SCRIPT)
         db.executescript(RP_ITEM_BUILD_SCRIPT)
+        db.executescript(TERRAIN_TEXTURE_BUILD_SCRIPT)
 
         db.executescript(BEHAVIOR_PACK_BUILD_SCRIPT)
         db.executescript(ENTITY_BUILD_SCRIPT)
@@ -144,7 +146,8 @@ class Database:
             "attachables",
             "sound_definitions",
             "sounds",
-            "rp_items"
+            "rp_items",
+            "terrain_texture",
         ),
         exclude: Container[DbRpItems] = tuple()
     ) -> None:
@@ -208,7 +211,11 @@ class Database:
                 "rp_items" not in exclude):
             load_rp_items(self.connection, rp_pk)
         self.connection.commit()
-
+        if (
+                "terrain_texture" in include and
+                "terrain_texture" not in exclude):
+            load_terrain_texture(self.connection, rp_pk)
+        self.connection.commit()
     def load_bp(
             self,
             bp_path: Path, *,

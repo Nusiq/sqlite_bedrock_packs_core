@@ -21,3 +21,4 @@ from ._db_sound import *
 from ._db_sound_definitions import *
 from ._db_texture import *
 from ._db_trade_table import *
+from ._db_terrain_texture import *

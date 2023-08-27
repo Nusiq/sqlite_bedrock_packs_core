@@ -24,6 +24,7 @@ from ._db_sound import *
 from ._db_sound_definitions import *
 from ._db_texture import *
 from ._db_trade_table import *
+from ._db_terrain_texture import *
 class ResourcePack(AbstractDBView):
     path: pathlib.Path
     id: int
@@ -575,6 +576,33 @@ class TradeTableItemSpawnEggReferenceField(AbstractDBView):
     spawnEggIdentifier: str
     jsonPath: str
     TradeTableItemField_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+    build_script: str
+class TerrainTextureFile(AbstractDBView):
+    path: pathlib.Path
+    ResourcePack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+    build_script: str
+class TerrainTexture(AbstractDBView):
+    identifier: str
+    TerrainTextureFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: typing.Callable
+    build_script: str
+class TerrainTextureVariation(AbstractDBView):
+    identifier: str
+    jsonPath: pathlib.Path
+    variantIndex: int
+    variationIndex: int
+    weight: int
+    tintColor: str
+    overlayColor: str
+    TerrainTexture_fk: int
     id: int
     connection: sqlite3.Connection
     query_result: typing.Callable

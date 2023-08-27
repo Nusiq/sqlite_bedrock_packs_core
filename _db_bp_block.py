@@ -61,7 +61,9 @@ class BpBlockMaterialInstancesField: ...
         "renderMethod": (str, "NOT NULL"),
     },
     connects_to=["BpBlockMaterialInstancesField"],
-    # TODO - weak connect texture to the short name of the terrain_texture field
+    weak_connects_to=[
+        ("texture", "TerrainTexture", "identifier")
+    ]
 )
 class BpBlockMaterialInstancesFieldInstance: ...
 
