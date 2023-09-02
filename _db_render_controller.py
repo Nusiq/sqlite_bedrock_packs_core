@@ -1,8 +1,8 @@
-from typing import cast
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
+from typing import cast, Literal, NamedTuple
 from collections import defaultdict
 from sqlite3 import Connection
 from pathlib import Path
-from typing import Literal, NamedTuple
 from copy import copy
 import json
 
@@ -81,6 +81,9 @@ RENDER_CONTROLLER_BUILD_SCRIPT: str = (
 )
 
 def load_render_controllers(db: Connection, rp_id: int):
+    '''
+    Loads all render controllers from the resource pack.
+    '''
     rp_path: Path = db.execute(
         "SELECT path FROM ResourcePack WHERE ResourcePack_pk = ?",
         (rp_id,)
@@ -128,6 +131,9 @@ def _load_rc_arrays(
     return dict(result)
 
 def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
+    '''
+    Loads a render controller from the resource pack.
+    '''
     cursor = db.cursor()
     # RENDER CONTROLLER FILE
     cursor.execute(
@@ -230,7 +236,7 @@ def load_render_controller(db: Connection, entity_path: Path, rp_id: int):
                             pattern
                         )
                     )
-                    
+
         # LOAD GEOMETRIES
         geo_arrays = _load_rc_arrays(rc, "geometry")
         field = rc / "geometry"

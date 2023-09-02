@@ -1,8 +1,9 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from sqlite3 import Connection
 from pathlib import Path
+import json
 from .better_json_tools import load_jsonc
 from ._views import dbtableview, WeakTableConnection
-import json
 
 @dbtableview(
     properties={
@@ -72,6 +73,9 @@ ENTITY_BUILD_SCRIPT: str = (
 )
 
 def load_entities(db: Connection, bp_id: int):
+    '''
+    Loads all entities from the behavior pack.
+    '''
     bp_path: Path = db.execute(
         "SELECT path FROM BehaviorPack WHERE BehaviorPack_pk = ?",
         (bp_id,)
@@ -81,6 +85,9 @@ def load_entities(db: Connection, bp_id: int):
         load_entity(db, entity_path, bp_id)
 
 def load_entity(db: Connection, entity_path: Path, bp_id: int):
+    '''
+    Loads an entity from the behavior pack.
+    '''
     cursor = db.cursor()
     # ENTITY FILE
     cursor.execute(

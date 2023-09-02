@@ -1,9 +1,10 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from sqlite3 import Connection
 from pathlib import Path
+import json
 from .better_json_tools import load_jsonc
 from .utils import split_item_name
 from ._views import dbtableview, WeakTableConnection
-import json
 
 @dbtableview(
     properties={
@@ -59,6 +60,9 @@ TRADE_TABLE_BUILD_SCRIPT: str = (
 )
 
 def load_trade_tables(db: Connection, rp_id: int):
+    '''
+    Loads all trade tables from the behavior pack.
+    '''
     rp_path: Path = db.execute(
         "SELECT path FROM BehaviorPack WHERE BehaviorPack_pk = ?",
         (rp_id,)
@@ -69,6 +73,9 @@ def load_trade_tables(db: Connection, rp_id: int):
 
 def load_trade_table(
         db: Connection, trade_table_path: Path, rp_path: Path, rp_id: int):
+    '''
+    Loads a trade table from the behavior pack.
+    '''
     cursor = db.cursor()
     # LOOT TABLE FILE
     cursor.execute(

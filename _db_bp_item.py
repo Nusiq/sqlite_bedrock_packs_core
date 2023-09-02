@@ -1,10 +1,11 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from typing import Optional
 from sqlite3 import Connection
 from pathlib import Path
+import json
 from .better_json_tools import load_jsonc
 from .utils import parse_format_version
 from ._views import dbtableview
-import json
 
 @dbtableview(
     properties={
@@ -40,6 +41,9 @@ BP_ITEM_BUILD_SCRIPT: str = (
 )
 
 def load_bp_items(db: Connection, bp_id: int):
+    '''
+    Loads all items from the behavior pack.
+    '''
     bp_path: Path = db.execute(
         "SELECT path FROM BehaviorPack WHERE BehaviorPack_pk = ?",
         (bp_id,)
@@ -49,6 +53,9 @@ def load_bp_items(db: Connection, bp_id: int):
         load_bp_item(db, item_path, bp_id)
 
 def load_bp_item(db: Connection, item_path: Path, bp_id: int):
+    '''
+    Loads an item from the behavior pack.
+    '''
     cursor = db.cursor()
     # BP ITEM FILE
     cursor.execute(

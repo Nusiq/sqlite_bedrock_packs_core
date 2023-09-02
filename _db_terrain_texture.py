@@ -1,9 +1,10 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from typing import cast, Optional, NamedTuple, Iterator, TYPE_CHECKING
 from sqlite3 import Connection
 from pathlib import Path
+import json
 from .better_json_tools import load_jsonc, JSONWalker
 from ._views import dbtableview, WeakTableConnection
-import json
 
 
 @dbtableview(
@@ -67,6 +68,9 @@ TERRAIN_TEXTURE_BUILD_SCRIPT: str = (
 )
 
 def load_terrain_texture(db: Connection, rp_id: int):
+    '''
+    Loads the terrain_texture.json file from the resource pack.
+    '''
     rp_path: Path = db.execute(
         "SELECT path FROM ResourcePack WHERE ResourcePack_pk = ?",
         (rp_id,)
@@ -78,6 +82,9 @@ def load_terrain_texture(db: Connection, rp_id: int):
     load_terrain_texture_items(db, terrain_texture_path, rp_id)
 
 def load_terrain_texture_items(db: Connection, terrain_texture_path: Path, rp_id: int):
+    '''
+    Loads all terrain textures from the terrain_texture.json file.
+    '''
     cursor = db.cursor()
     # TERRAIN TEXTURE FILE
     cursor.execute(
@@ -241,6 +248,9 @@ class _VariantData(NamedTuple):
 
     @property
     def is_variation(self) -> bool:
+        '''
+        Whether this variant is a variation or variations are nested inside.
+        '''
         return self.path is not None
 
 def _yield_variations(variant_walker: JSONWalker) -> Iterator[tuple[int, _VariationData]]:
@@ -285,7 +295,9 @@ def _get_variant_data(variant_walker: JSONWalker) -> _VariantData:
     return _VariantData(
         path, json_path, tint_color, overlay_color)
 
-def _yield_variants(variant_list_walker: JSONWalker) -> Iterator[tuple[JSONWalker, int, _VariantData]]:
+def _yield_variants(
+    variant_list_walker: JSONWalker
+) -> Iterator[tuple[JSONWalker, int, _VariantData]]:
     '''
     Yields the variant data from the JSONWalker that represents a variant list.
     '''

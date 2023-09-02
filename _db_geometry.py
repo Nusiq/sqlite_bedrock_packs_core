@@ -1,9 +1,10 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from typing import cast, Optional
 from sqlite3 import Connection
 from pathlib import Path
+import json
 from .better_json_tools import load_jsonc
 from ._views import dbtableview
-import json
 
 @dbtableview(
     properties={
@@ -29,6 +30,9 @@ GEOMETRY_BUILD_SCRIPT: str = (
 )
 
 def load_geometries(db: Connection, rp_id: int):
+    '''
+    Loads all geometries from the resource pack.
+    '''
     rp_path: Path = db.execute(
         "SELECT path FROM ResourcePack WHERE ResourcePack_pk = ?",
         (rp_id,)
@@ -38,6 +42,9 @@ def load_geometries(db: Connection, rp_id: int):
         load_geometry(db, geometry_path, rp_id)
 
 def load_geometry(db: Connection, geometry_path: Path, rp_id: int):
+    '''
+    Loads a geometry from the resource pack.
+    '''
     cursor = db.cursor()
     # GEOMETRY FILE
     cursor.execute(
@@ -57,20 +64,20 @@ def load_geometry(db: Connection, geometry_path: Path, rp_id: int):
             continue
         # Check for inheritance
         split = full_identifier.split(":", 1)
-        id = full_identifier
+        id_ = full_identifier
         parent: Optional[str] = None
         if len(split)  == 2:
-            id, parent = split
+            id_, parent = split
         cursor.execute(
             '''
             INSERT INTO Geometry (
                 identifier, parent, GeometryFile_fk, jsonPath
             ) VALUES (?, ?, ?, ?)
             ''',
-            (id, parent, file_pk, identifier.path_str)
+            (id_, parent, file_pk, identifier.path_str)
         )
     # Try with 1.12.0 format
-    geometries = (geometry_jsonc / "minecraft:geometry" // int)
+    geometries = geometry_jsonc / "minecraft:geometry" // int
     for geometry in geometries:
         identifier = geometry / 'description' / 'identifier'
         identifier_data = identifier.data

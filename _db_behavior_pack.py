@@ -1,3 +1,4 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from sqlite3 import Connection
 from pathlib import Path
 from typing import Union
@@ -14,6 +15,9 @@ class BehaviorPack: ...
 BEHAVIOR_PACK_BUILD_SCRIPT: str = BehaviorPack.build_script
 
 def load_behavior_pack(db: Connection, rp_path: Union[Path, str]) -> int:
+    '''
+    Loads a behavior pack into the database.
+    '''
     if isinstance(rp_path, Path):
         rp_path = rp_path.as_posix()
     count = db.execute(

@@ -1,8 +1,9 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from sqlite3 import Connection
 from pathlib import Path
+import json
 from .better_json_tools import load_jsonc
 from ._views import dbtableview, WeakTableConnection
-import json
 
 
 @dbtableview(
@@ -130,6 +131,9 @@ ATTACHABLE_BUILD_SCRIPT: str = (
 )
 
 def load_attachables(db: Connection, rp_id: int):
+    '''
+    Loads all attachables from the resource pack.
+    '''
     rp_path: Path = db.execute(
         "SELECT path FROM ResourcePack WHERE ResourcePack_pk = ?",
         (rp_id,)
@@ -139,6 +143,9 @@ def load_attachables(db: Connection, rp_id: int):
         load_attachable(db, attachable_path, rp_id)
 
 def load_attachable(db: Connection, attachable_path: Path, rp_id: int):
+    '''
+    Loads a single attachable from the resource pack.
+    '''
     cursor = db.cursor()
     # ATTACHABLE FILE
     cursor.execute(

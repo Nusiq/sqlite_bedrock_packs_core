@@ -1,9 +1,10 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from typing import cast
 from sqlite3 import Connection
 from pathlib import Path
+import json
 from .better_json_tools import load_jsonc
 from ._views import dbtableview
-import json
 
 @dbtableview(
     properties={
@@ -29,6 +30,9 @@ BP_ANIMATION_CONTROLLER_BUILD_SCRIPT: str = (
 )
 
 def load_bp_animation_controllers(db: Connection, bp_id: int):
+    '''
+    Loads all animation controllers from the behavior pack.
+    '''
     bp_path: Path = db.execute(
         "SELECT path FROM BehaviorPack WHERE BehaviorPack_pk = ?",
         (bp_id,)
@@ -39,6 +43,9 @@ def load_bp_animation_controllers(db: Connection, bp_id: int):
 
 
 def load_bp_animation_controller(db: Connection, animation_controller_path: Path, bp_id: int):
+    '''
+    Loads an animation controller from the behavior pack.
+    '''
     cursor = db.cursor()
     # BP ANIMATION FILE
     cursor.execute(
@@ -65,4 +72,3 @@ def load_bp_animation_controller(db: Connection, animation_controller_path: Path
             (file_pk, identifier_data, ac_walker.path_str)
         )
         # bp_anim_pk = cursor.lastrowid
-

@@ -1,3 +1,4 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from sqlite3 import Connection
 from pathlib import Path
 from ._views import dbtableview
@@ -17,6 +18,9 @@ class TextureFile: ...
 TEXTURE_BUILD_SCRIPT: str = TextureFile.build_script
 
 def load_textures(db: Connection, rp_id: int):
+    '''
+    Loads all textures from the resource pack.
+    '''
     rp_path: Path = db.execute(
         "SELECT path FROM ResourcePack WHERE ResourcePack_pk = ?",
         (rp_id,)
@@ -30,6 +34,9 @@ def load_textures(db: Connection, rp_id: int):
         load_texture(db, texture_path, rp_path, rp_id)
 
 def load_texture(db: Connection, texture_path: Path, rp_path: Path, rp_id: int):
+    '''
+    Loads a texture from the resource pack.
+    '''
     cursor = db.cursor()
     # TEXTURE FILE AND ITS IDENTIFIER
     cursor.execute(

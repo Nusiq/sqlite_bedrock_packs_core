@@ -1,7 +1,8 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from sqlite3 import Connection
 from pathlib import Path
-from .better_json_tools import load_jsonc
 import json
+from .better_json_tools import load_jsonc
 from ._views import dbtableview, WeakTableConnection
 
 @dbtableview(
@@ -113,6 +114,9 @@ CLIENT_ENTITY_BUILD_SCRIPT: str = (
 )
 
 def load_client_entities(db: Connection, rp_id: int):
+    '''
+    Loads all client entities from the resource pack.
+    '''
     rp_path: Path = db.execute(
         "SELECT path FROM ResourcePack WHERE ResourcePack_pk = ?",
         (rp_id,)
@@ -122,6 +126,9 @@ def load_client_entities(db: Connection, rp_id: int):
         load_client_entity(db, entity_path, rp_id)
 
 def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
+    '''
+    Loads a client entity from the resource pack.
+    '''
     cursor = db.cursor()
     # ENTITY FILE
     cursor.execute(
@@ -164,7 +171,7 @@ def load_client_entity(db: Connection, entity_path: Path, rp_id: int):
     # RENDER CONTROLLERS - conditional
     for rc in (description / "render_controllers" // int // str):
         if isinstance(rc.data, str):
-           condition = rc.data
+            condition = rc.data
         else:
             condition = None
         cursor.execute(

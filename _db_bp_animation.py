@@ -1,9 +1,10 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from typing import cast
 from sqlite3 import Connection
 from pathlib import Path
+import json
 from .better_json_tools import load_jsonc
 from ._views import dbtableview
-import json
 
 
 @dbtableview(
@@ -13,7 +14,7 @@ import json
     connects_to=["BehaviorPack"]
 )
 class BpAnimationFile: ...
- 
+
 @dbtableview(
     properties={
         "identifier": (str, "NOT NULL"),
@@ -29,6 +30,9 @@ BP_ANIMATION_BUILD_SCRIPT: str = (
 )
 
 def load_bp_animations(db: Connection, bp_id: int):
+    '''
+    Loads all animations from the behavior pack.
+    '''
     bp_path: Path = db.execute(
         "SELECT path FROM BehaviorPack WHERE BehaviorPack_pk = ?",
         (bp_id,)
@@ -38,6 +42,9 @@ def load_bp_animations(db: Connection, bp_id: int):
         load_bp_animation(db, animation_path, bp_id)
 
 def load_bp_animation(db: Connection, animation_path: Path, bp_id: int):
+    '''
+    Loads an animation from the behavior pack.
+    '''
     cursor = db.cursor()
     # BP ANIMATION FILE
     cursor.execute(

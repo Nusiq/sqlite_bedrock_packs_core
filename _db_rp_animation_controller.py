@@ -1,9 +1,10 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from typing import cast
 from sqlite3 import Connection
 from pathlib import Path
+import json
 from .better_json_tools import load_jsonc
 from ._views import dbtableview
-import json
 
 @dbtableview(
     properties={
@@ -48,6 +49,9 @@ RP_ANIMATION_CONTROLLER_BUILD_SCRIPT: str = (
 )
 
 def load_rp_animation_controllers(db: Connection, rp_id: int):
+    '''
+    Loads all animation controllers from the resource pack.
+    '''
     rp_path: Path = db.execute(
         "SELECT path FROM ResourcePack WHERE ResourcePack_pk = ?",
         (rp_id,)
@@ -58,6 +62,9 @@ def load_rp_animation_controllers(db: Connection, rp_id: int):
 
 
 def load_rp_animation_controller(db: Connection, animation_controller_path: Path, rp_id: int):
+    '''
+    Loads an animation controller from the resource pack.
+    '''
     cursor = db.cursor()
     # RP ANIMATION FILE
     cursor.execute(

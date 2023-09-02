@@ -1,9 +1,10 @@
+# pylint: disable=no-member, multiple-statements, missing-module-docstring, missing-class-docstring
 from typing import Optional
 from sqlite3 import Connection
 from pathlib import Path
+import json
 from .better_json_tools import load_jsonc
 from ._views import dbtableview
-import json
 
 @dbtableview(
     properties={
@@ -28,6 +29,9 @@ RP_ITEM_BUILD_SCRIPT: str = (
 )
 
 def load_rp_items(db: Connection, rp_id: int):
+    '''
+    Loads all items from the resource pack.
+    '''
     rp_path: Path = db.execute(
         "SELECT path FROM ResourcePack WHERE ResourcePack_pk = ?",
         (rp_id,)
@@ -37,6 +41,9 @@ def load_rp_items(db: Connection, rp_id: int):
         load_rp_item(db, item_path, rp_id)
 
 def load_rp_item(db: Connection, item_path: Path, rp_id: int):
+    '''
+    Loads an item from the resource pack.
+    '''
     cursor = db.cursor()
     # RP ITEM FILE
     cursor.execute(
