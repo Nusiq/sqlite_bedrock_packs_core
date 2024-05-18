@@ -24,3 +24,5 @@ from ._db_sound_definitions import *   # pyright: ignore[reportGeneralTypeIssues
 from ._db_texture import *   # pyright: ignore[reportGeneralTypeIssues]
 from ._db_trade_table import *   # pyright: ignore[reportGeneralTypeIssues]
 from ._db_terrain_texture import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_feature_rule import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_feature import *   # pyright: ignore[reportGeneralTypeIssues]

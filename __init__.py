@@ -21,7 +21,7 @@ from ._views import (
     RELATION_MAP, WRAPPER_CLASSES, add_reverse_connections,
     validate_weak_connections, AbstractDBView)
 
-VERSION: tuple[int, int, int] = (3, 1, 1)
+VERSION: tuple[int, int, int] = (3, 2, 0)
 __version__ = '.'.join([str(x) for x in VERSION])
 
 # SQLite3 converters/adapters
@@ -55,7 +55,9 @@ DbBpItems = Literal[
     "bp_animations",
     "bp_animation_controllers",
     "bp_items",
-    "bp_blocks"
+    "bp_blocks",
+    "feature_rules",
+    "features"
 ]
 
 # THE MAIN DATABASE CLASS
@@ -132,6 +134,8 @@ class Database:
         db.executescript(BP_ANIMATION_CONTROLLER_BUILD_SCRIPT)
         db.executescript(BP_ITEM_BUILD_SCRIPT)
         db.executescript(BP_BLOCK_BUILD_SCRIPT)
+        db.executescript(FEATURE_RULE_BUILD_SCRIPT)
+        db.executescript(FEATURE_BUILD_SCRIPT)
 
         return Database(db)
 
@@ -229,7 +233,9 @@ class Database:
                 "bp_animations",
                 "bp_animation_controllers",
                 "bp_items",
-                "bp_blocks"
+                "bp_blocks",
+                "feature_rules",
+                "features"
             ),
             exclude: Container[DbBpItems] = tuple()) -> None:
         '''
@@ -275,6 +281,14 @@ class Database:
                 "bp_blocks" in include and
                 "bp_blocks" not in exclude):
             load_bp_blocks(self.connection, bp_pk)
+        if (
+                "feature_rules" in include and
+                "feature_rules" not in exclude):
+            load_feature_rules(self.connection, bp_pk)
+        if (
+                "features" in include and
+                "features" not in exclude):
+            load_features(self.connection, bp_pk)
         self.connection.commit()
 
     def close(self):

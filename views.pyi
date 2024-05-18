@@ -1,5 +1,6 @@
 import pathlib
 import sqlite3
+# pylint: disable=unused-wildcard-import, unused-import, wildcard-import, missing-module-docstring
 from typing import Any, Callable # pyright: ignore[reportUnusedImport]
 from ._views import AbstractDBView # pyright: ignore[reportUnusedImport]
 # First bp and rp
@@ -25,6 +26,8 @@ from ._db_sound_definitions import *   # pyright: ignore[reportGeneralTypeIssues
 from ._db_texture import *   # pyright: ignore[reportGeneralTypeIssues]
 from ._db_trade_table import *   # pyright: ignore[reportGeneralTypeIssues]
 from ._db_terrain_texture import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_feature_rule import *   # pyright: ignore[reportGeneralTypeIssues]
+from ._db_feature import *   # pyright: ignore[reportGeneralTypeIssues]
 class ResourcePack(AbstractDBView):
     path: pathlib.Path
     id: int
@@ -603,6 +606,51 @@ class TerrainTextureVariation(AbstractDBView):
     tintColor: str
     overlayColor: str
     TerrainTexture_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: Callable[[], tuple[Any, ...]]
+    build_script: str
+class FeatureRuleFile(AbstractDBView):
+    path: pathlib.Path
+    BehaviorPack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: Callable[[], tuple[Any, ...]]
+    build_script: str
+class FeatureRule(AbstractDBView):
+    identifier: str
+    placesFeature: str
+    FeatureRuleFile_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: Callable[[], tuple[Any, ...]]
+    build_script: str
+class FeatureFile(AbstractDBView):
+    path: pathlib.Path
+    BehaviorPack_fk: int
+    id: int
+    connection: sqlite3.Connection
+    query_result: Callable[[], tuple[Any, ...]]
+    build_script: str
+class Feature(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    FeatureFile_fk: int
+    featureType: str
+    id: int
+    connection: sqlite3.Connection
+    query_result: Callable[[], tuple[Any, ...]]
+    build_script: str
+class FeaturePlacesFeatureFieldValue(AbstractDBView):
+    identifier: str
+    jsonPath: str
+    id: int
+    connection: sqlite3.Connection
+    query_result: Callable[[], tuple[Any, ...]]
+    build_script: str
+class FeaturePlacesFeatureField(AbstractDBView):
+    Feature_fk: int
+    FeaturePlacesFeatureFieldValue_fk: int
     id: int
     connection: sqlite3.Connection
     query_result: Callable[[], tuple[Any, ...]]
